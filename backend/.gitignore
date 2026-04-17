@@ -1,0 +1,31 @@
+# ── .NET ──────────────────────────────────────────────────────────────────────
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.DotSettings.user
+TestResults/
+
+# ── Secrets ───────────────────────────────────────────────────────────────────
+.env
+appsettings.Local.json
+**/secrets.json
+
+# ── Node / Frontend ───────────────────────────────────────────────────────────
+node_modules/
+web-frontend/dist/
+web-frontend/.env.local
+web-frontend/.env.*.local
+
+# ── Docker ────────────────────────────────────────────────────────────────────
+.dockerignore
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/settings.json
+*.swp

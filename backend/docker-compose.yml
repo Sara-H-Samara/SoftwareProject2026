@@ -1,0 +1,35 @@
+services:
+  db:
+    # azure-sql-edge: the ARM64-compatible SQL Server image for Apple Silicon
+    image: mcr.microsoft.com/azure-sql-edge:latest
+    container_name: vag_sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=StrongPassword@2026!
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/1433' 2>/dev/null && echo OK || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    container_name: vag_azurite
+    command: azurite --loose --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0
+    ports:
+      - "10000:10000"
+      - "10001:10001"
+      - "10002:10002"
+    volumes:
+      - azurite_data:/data
+    restart: unless-stopped
+
+volumes:
+  sqlserver_data:
+  azurite_data:

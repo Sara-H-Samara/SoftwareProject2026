@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "azure-storage": "^2.10.7"
+  },
+  "devDependencies": {
+    "azurite": "^3.35.0"
+  }
+}
