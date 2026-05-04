@@ -48,6 +48,14 @@ public class EmailService : IEmailService
         await SendAsync(toEmail, subject, htmlBody);
     }
 
+public Task SendNotificationEmailAsync(string toEmail, string subject, string htmlBody)
+{
+    _logger.LogInformation("[Notification Email] To: {To}, Subject: {Subject}", toEmail, subject);
+    // يمكنك هنا استخدام نفس طريقة SendViaSmtpAsync أو SendGrid
+    return SendViaSmtpAsync(toEmail, subject, htmlBody);
+}
+
+
     public async Task SendWelcomeEmailAsync(string toEmail, string userName)
     {
         var subject = "Welcome to Virtual Art Gallery!";

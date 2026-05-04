@@ -6,10 +6,9 @@ using VirtualArtGallery.Core.Constants;
 namespace VirtualArtGallery.Api.Controllers;
 
 /// <summary>
-/// Base controller providing shared helpers used across all API controllers:
-///   - Translating Result<T> to the correct IActionResult
-///   - Extracting the current user's ID from JWT claims
+/// Converts a Result<T> into the appropriate HTTP response.
 /// </summary>
+
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]

@@ -136,3 +136,59 @@ export function useResetPassword() {
     },
   });
 }
+
+// ─── Update Profile (display name, gallery name, bio) ─────────────────────────
+export function useUpdateProfile() {
+  const queryClient = useQueryClient();
+  const { user, updateUser } = useAuthStore();
+
+  return useMutation({
+    mutationFn: async (data: { displayName?: string; galleryName?: string; bio?: string }) => {
+      const response = await axios.put<{ user: UserProfile }>(
+        `${API_BASE_URL}/api/auth/profile`,
+        data
+      );
+      return response.data.user;
+    },
+    onSuccess: (updatedUser) => {
+      updateUser(updatedUser);
+      queryClient.setQueryData(authKeys.profile, updatedUser);
+      Toast.show({ type: "success", text1: "Profile updated successfully!" });
+    },
+    onError: (error: any) => {
+      const message = error.response?.data?.error || "Failed to update profile";
+      Toast.show({ type: "error", text1: message });
+    },
+  });
+}
+
+// ─── Update Profile Picture ───────────────────────────────────────────────────
+export function useUpdateProfilePicture() {
+  const queryClient = useQueryClient();
+  const { user, updateUser } = useAuthStore();
+
+  return useMutation({
+    mutationFn: async (file: any) => {
+      const formData = new FormData();
+      // Expo Image Picker returns an object with uri, name, type
+      formData.append("file", file);
+      const response = await axios.put<{ user: UserProfile }>(
+        `${API_BASE_URL}/api/auth/profile/picture`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      return response.data.user;
+    },
+    onSuccess: (updatedUser) => {
+      updateUser(updatedUser);
+      queryClient.setQueryData(authKeys.profile, updatedUser);
+      Toast.show({ type: "success", text1: "Profile picture updated!" });
+    },
+    onError: (error: any) => {
+      const message = error.response?.data?.error || "Failed to update profile picture";
+      Toast.show({ type: "error", text1: message });
+    },
+  });
+}

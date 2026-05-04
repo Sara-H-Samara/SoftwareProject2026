@@ -14,6 +14,7 @@ using VirtualArtGallery.Core.Interfaces;
 using VirtualArtGallery.Infrastructure.Configurations;
 using VirtualArtGallery.Infrastructure.Data;
 using VirtualArtGallery.Infrastructure.Services;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,7 +42,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 maxRetryDelay: TimeSpan.FromSeconds(10),
                 errorNumbersToAdd: null);
             sqlOptions.MigrationsAssembly("VirtualArtGallery.Infrastructure");
-        }));
+        })
+        .ConfigureWarnings(warnings =>
+        warnings.Ignore(RelationalEventId.MultipleCollectionIncludeWarning))
+        );
 
 // ── 3. ASP.NET Core Identity ─────────────────────────────────────────────────
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -129,6 +133,10 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ArtworkService>();
 builder.Services.AddScoped<GalleryService>();
 builder.Services.AddScoped<AiService>();
+builder.Services.AddScoped<BadgeService>();
+builder.Services.AddScoped<ReviewService>();
+builder.Services.AddScoped<NotificationService>();
+builder.Services.AddScoped<ActivityService>();
 
 // ── 8. FluentValidation ───────────────────────────────────────────────────────
 builder.Services.AddFluentValidationAutoValidation();

@@ -5,7 +5,7 @@ services:
     container_name: vag_sqlserver
     environment:
       - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=StrongPassword@2026!
+      - MSSQL_SA_PASSWORD=VagDev!Str0ng
     ports:
       - "1433:1433"
     volumes:

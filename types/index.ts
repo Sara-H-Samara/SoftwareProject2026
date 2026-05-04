@@ -86,6 +86,9 @@ export interface Artwork extends Artwork3DPlacement {
   isPublished: boolean
   createdAt: string
   updatedAt: string
+  viewsCount?: number;
+  likesCount?: number;
+  soldCount?: number;
 }
 
 export interface ArtworkSummary {

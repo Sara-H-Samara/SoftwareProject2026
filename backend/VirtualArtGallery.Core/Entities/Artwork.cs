@@ -10,6 +10,10 @@ namespace VirtualArtGallery.Core.Entities;
 public class Artwork
 {
     public Guid Id { get; set; } = Guid.NewGuid();
+    // Navigation properties for likes and reviews
+public ICollection<Like> Likes { get; set; } = new List<Like>();
+public ICollection<Review> Reviews { get; set; } = new List<Review>();
+public double AverageRating { get; set; } // computed or stored
 
     /// <summary>Title of the artwork (e.g., "Sunset Over the Bay").</summary>
     public string Title { get; set; } = string.Empty;
@@ -60,6 +64,8 @@ public class Artwork
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+public int LikesCount { get; set; }
+public int ReviewsCount { get; set; }
     // Navigation properties
     public ApplicationUser? Artist { get; set; }
 }
