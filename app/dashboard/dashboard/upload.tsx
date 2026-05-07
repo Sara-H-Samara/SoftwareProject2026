@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Image, Alert } from "react-native";
-import { useRouter } from "expo-router";
-import { useCreateArtwork } from "@/hooks/useArtworks";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { useCreateArtwork, useUpdateArtwork, useArtwork } from "@/hooks/useArtworks";
 import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
@@ -12,8 +12,13 @@ import { ARTWORK_TYPES } from "@/utils/constants";
 
 export default function UploadArtworkPage() {
   const router = useRouter();
-  const clearAuth = useAuthStore((state) => state.clearAuth);
-  const { mutate: createArtwork, isPending } = useCreateArtwork();
+  const { edit } = useLocalSearchParams<{ edit?: string }>(); // ✅ قراءة معامل edit
+  const isEditMode = !!edit;
+  
+  const { clearAuth } = useAuthStore();
+  const { mutate: createArtwork, isPending: isCreating } = useCreateArtwork();
+  const { mutate: updateArtwork, isPending: isUpdating } = useUpdateArtwork();
+  const { data: existingArtwork, isLoading: isLoadingArtwork } = useArtwork(edit || "");
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -24,6 +29,21 @@ export default function UploadArtworkPage() {
   const [price, setPrice] = useState("");
   const [image, setImage] = useState<any>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  // ✅ تحميل بيانات العمل الفني في وضع التعديل
+  useEffect(() => {
+    if (isEditMode && existingArtwork) {
+      setTitle(existingArtwork.title);
+      setDescription(existingArtwork.description || "");
+      setArtworkType(existingArtwork.artworkType);
+      setMaterials(existingArtwork.materials || "");
+      setDimensions(existingArtwork.dimensions || "");
+      setYear(existingArtwork.year?.toString() || "");
+      setPrice(existingArtwork.price?.toString() || "");
+      setImagePreview(existingArtwork.imageUrl);
+      // لا نضع image لأن المستخدم قد يغير الصورة
+    }
+  }, [isEditMode, existingArtwork]);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -45,7 +65,8 @@ export default function UploadArtworkPage() {
 
   const handleSubmit = () => {
     if (!title.trim()) return Alert.alert("Error", "Title is required.");
-    if (!image) return Alert.alert("Error", "Please select an image.");
+    if (!isEditMode && !image) return Alert.alert("Error", "Please select an image.");
+
     const payload = {
       title: title.trim(),
       description: description.trim() || undefined,
@@ -56,30 +77,56 @@ export default function UploadArtworkPage() {
       price: price ? Number(price) : undefined,
     };
 
-    createArtwork(
-      { data: payload, imageFile: image },
-      {
-        onSuccess: () => {
-          router.replace("/dashboard/dashboard/artworks");
-        },
-        onError: (error) => {
-          // إذا كانت الجلسة منتهية، قم بتوجيه المستخدم إلى تسجيل الدخول
-          if (
-            error instanceof Error &&
-            error.message.includes("Session expired")
-          ) {
-            clearAuth();
-            router.replace("/auth/login");
-          }
-          // الأخطاء الأخرى سيتم عرضها تلقائيًا عبر التوست من داخل useCreateArtwork
-        },
-      }
-    );
+    if (isEditMode && edit) {
+      // ✅ تحديث العمل الفني الحالي
+      updateArtwork(
+        { id: edit, data: payload },
+        {
+          onSuccess: () => {
+            router.replace("/dashboard/dashboard/artworks");
+          },
+          onError: (error) => {
+            if (error instanceof Error && error.message.includes("Session expired")) {
+              clearAuth();
+              router.replace("/auth/login");
+            }
+          },
+        }
+      );
+    } else if (image) {
+      // ✅ رفع عمل فني جديد
+      createArtwork(
+        { data: payload, imageFile: image },
+        {
+          onSuccess: () => {
+            router.replace("/dashboard/dashboard/artworks");
+          },
+          onError: (error) => {
+            if (error instanceof Error && error.message.includes("Session expired")) {
+              clearAuth();
+              router.replace("/auth/login");
+            }
+          },
+        }
+      );
+    }
   };
+
+  const isPending = isCreating || isUpdating;
+
+  if (isEditMode && isLoadingArtwork) {
+    return (
+      <View className="flex-1 bg-stone-50 justify-center items-center">
+        <Text className="text-stone-500">Loading artwork...</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView className="flex-1 bg-stone-50 p-4" showsVerticalScrollIndicator={false}>
-      <Text className="font-display text-2xl font-bold text-stone-800 mb-4">Upload Artwork</Text>
+      <Text className="font-display text-2xl font-bold text-stone-800 mb-4">
+        {isEditMode ? "Edit Artwork" : "Upload Artwork"}
+      </Text>
 
       <TouchableOpacity onPress={pickImage} className="mb-4">
         {imagePreview ? (
@@ -124,8 +171,12 @@ export default function UploadArtworkPage() {
       </View>
 
       <View className="flex-row gap-3 mt-6">
-        <Button onPress={handleSubmit} isLoading={isPending} className="flex-1">Upload</Button>
-        <Button variant="secondary" onPress={() => router.back()} className="flex-1">Cancel</Button>
+        <Button onPress={handleSubmit} isLoading={isPending} className="flex-1">
+          {isEditMode ? "Save Changes" : "Upload"}
+        </Button>
+        <Button variant="secondary" onPress={() => router.back()} className="flex-1">
+          Cancel
+        </Button>
       </View>
     </ScrollView>
   );

@@ -7,7 +7,9 @@ import type {
   CreateArtworkRequest,
   UpdateArtworkRequest,
   UpdateArtworkPositionRequest,
+  Artwork,  // ✅ تمت إضافة الاستيراد المفقود
 } from "@/types";
+import api from '@/api/axiosInstance';
 
 // ── Query Keys ────────────────────────────────────────────────────────────────
 export const artworkKeys = {
@@ -20,20 +22,31 @@ export const artworkKeys = {
 
 /** All artworks owned by the currently authenticated artist. */
 export function useMyArtworks() {
-  const { accessToken, isAuthenticated } = useAuthStore();
+  const { isAuthenticated, accessToken, user } = useAuthStore();
+  
   return useQuery({
     queryKey: artworkKeys.mine(),
     queryFn: async () => {
-      if (!accessToken) return [];
-      const response = await fetch(`${API_BASE_URL}/api/artworks/my`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      if (response.status === 401) return [];
-      if (!response.ok) throw new Error("Failed to fetch artworks");
-      return response.json();
+      try {
+        console.log("🔍 Fetching my artworks with token (first 20 chars):", accessToken?.substring(0, 20));
+        console.log("👤 Current user:", user?.id, user?.email);
+        
+        // استخدام api مباشرةً بدلاً من fetch – api.ts سيتعامل مع الـ token تلقائياً
+        const response = await api.get<Artwork[]>('/api/artworks/my');
+        console.log("✅ Artworks fetched:", response.data?.length);
+        return response.data;
+      } catch (error: any) {
+        console.log("❌ API error:", error?.response?.status, error?.response?.data);
+        // إذا كان الخطأ 401، نحاول تسجيل خروج المستخدم أو تجديد التوكن
+        if (error?.response?.status === 401) {
+          Toast.show({ type: "error", text1: "Session expired. Please login again." });
+          // يمكنك استدعاء clearAuth هنا إذا أردت
+        }
+        throw error;
+      }
     },
     staleTime: 1000 * 60 * 2,
-    enabled: !!accessToken && isAuthenticated,
+    enabled: isAuthenticated,
   });
 }
 

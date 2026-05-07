@@ -1,8 +1,18 @@
 import Constants from "expo-constants";
 
+// احصل على IP جهاز الكمبيوتر من الـ extra config (يمكنك تغييره يدوياً)
+// للاختبار السريع، استخدم IP مباشر:
+const getBaseUrl = () => {
+  // إذا كنت تستخدم محاكي Android على نفس الجهاز، استخدم 10.0.2.2
+  // إذا كنت تستخدم جهاز حقيقي أو محاكي iOS، استخدم IP شبكتك الحقيقية
+  // مثال: "http://192.168.1.100:5005"
+  return "http://192.168.1.45:5005"; // غيّر هذا إلى IP جهازك الفعلي
+};
+
 export const APP_NAME = "Virtual Art Gallery";
-export const API_BASE_URL = "http://localhost:5005";
+export const API_BASE_URL = getBaseUrl();
 console.log("🔧 API_BASE_URL used:", API_BASE_URL);
+
 export const STRIPE_PUBLISHABLE_KEY =
   Constants.expoConfig?.extra?.stripePublishableKey ?? "";
 
