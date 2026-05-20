@@ -1,4 +1,5 @@
-import { View, Text, ScrollView, Image, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, Image, TouchableOpacity, Alert } from "react-native";
+import { useRouter } from "expo-router";
 import { useAuthStore } from "@/store/authStore";
 import { useUpdateProfile, useUpdateProfilePicture } from "@/hooks/useAuth";
 import { useState, useRef } from "react";
@@ -9,12 +10,15 @@ import * as ImagePicker from "expo-image-picker";
 import { getInitials, formatDate } from "@/utils/helpers";
 
 export default function VisitorProfilePage() {
-  const { user } = useAuthStore();
+  const router = useRouter();
+  const { user, clearAuth } = useAuthStore();
   const [displayName, setDisplayName] = useState(user?.displayName ?? "");
   const [bio, setBio] = useState(user?.bio ?? "");
   const [isEditing, setIsEditing] = useState(false);
   const { mutate: updateProfile, isPending: isUpdating } = useUpdateProfile();
   const { mutate: updatePicture, isPending: isUploading } = useUpdateProfilePicture();
+
+  
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -36,6 +40,24 @@ export default function VisitorProfilePage() {
   const handleSave = () => {
     updateProfile({ displayName, bio });
     setIsEditing(false);
+  };
+
+  const handleSignOut = () => {
+    Alert.alert(
+      "Sign Out",
+      "Are you sure you want to sign out?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Sign Out",
+          style: "destructive",
+          onPress: () => {
+            clearAuth();
+            router.replace("/auth/login");
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -91,12 +113,21 @@ export default function VisitorProfilePage() {
         </View>
       </View>
 
-      <View className="bg-white rounded-xl p-4">
+      <View className="bg-white rounded-xl p-4 mb-4">
         <Text className="font-semibold text-stone-800 mb-3">Account Information</Text>
         <InfoRow label="Email" value={user?.email ?? "—"} />
         <InfoRow label="Account Type" value={user?.userType ?? "—"} />
         <InfoRow label="Member Since" value={user?.createdAt ? formatDate(user.createdAt) : "—"} />
       </View>
+
+      {/* Sign Out Button */}
+      <TouchableOpacity
+        onPress={handleSignOut}
+        className="bg-red-500 py-4 rounded-xl items-center justify-center flex-row mb-8"
+      >
+        <Ionicons name="log-out-outline" size={20} color="white" />
+        <Text className="text-white font-bold text-lg ml-2">Sign Out</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }

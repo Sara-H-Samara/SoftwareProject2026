@@ -1,31 +1,82 @@
 import { View, Text, FlatList, TouchableOpacity, TextInput, Modal, ScrollView, ActivityIndicator } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useInfiniteSearch } from "@/hooks/useSearch";
+import { useMyArtworks } from "@/hooks/useArtworks";
+import { useAuthStore } from "@/store/authStore";
 import { ArtworkCard } from "@/components/search/ArtworkCard";
 import { FilterSidebar } from "@/components/search/FilterSidebar";
 import { PageLoader } from "@/components/common/Spinner";
 import { Ionicons } from "@expo/vector-icons";
-import type { SearchFilters } from "@/types";
+import type { SearchFilters, Artwork } from "@/types";
 
 export default function SearchPage() {
+  const { user, isArtist, isAuthenticated } = useAuthStore();
   const [filters, setFilters] = useState<SearchFilters>({ query: "", sortBy: "newest", pageSize: 12 });
   const [showFilters, setShowFilters] = useState(false);
   const [searchInput, setSearchInput] = useState(filters.query || "");
 
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteSearch(filters);
-  const allArtworks = data?.pages.flatMap((p) => p.items) ?? [];
-  const totalCount = data?.pages[0]?.totalCount ?? 0;
+  const isSearchActive = filters.query && filters.query.trim().length > 0;
+  
+  // Only fetch my artworks if user is artist (to avoid 403)
+  const { data: myArtworks, isLoading: myArtworksLoading } = useMyArtworks();
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage, refetch, error: searchError } = useInfiniteSearch(filters);
+
+  // Determine which data to show
+  let displayArtworks: Artwork[] = [];
+  let totalCount = 0;
+  let isLoadingData = false;
+  let errorMessage: string | null = null;
+
+  if (isSearchActive) {
+    if (searchError) {
+      errorMessage = "Search unavailable. Please try again later.";
+    } else {
+      displayArtworks = data?.pages.flatMap((p) => p.items) ?? [];
+      totalCount = data?.pages[0]?.totalCount ?? 0;
+      isLoadingData = isLoading;
+    }
+  } else {
+    // No search query: if artist, show own published artworks; else show nothing
+    if (isArtist && myArtworks) {
+      displayArtworks = myArtworks.filter((a: Artwork) => a.isPublished);
+      totalCount = displayArtworks.length;
+      isLoadingData = myArtworksLoading;
+    } else {
+      // For visitors, show a message to start searching
+      displayArtworks = [];
+      totalCount = 0;
+      isLoadingData = false;
+    }
+  }
+
+  useEffect(() => {
+    if (isSearchActive) {
+      refetch();
+    }
+  }, [filters, refetch, isSearchActive]);
 
   const handleSearch = () => {
     setFilters({ ...filters, query: searchInput });
   };
 
   const handleLoadMore = () => {
-    if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+    if (isSearchActive && hasNextPage && !isFetchingNextPage) fetchNextPage();
   };
 
-  if (isLoading && allArtworks.length === 0) {
-    return <PageLoader message="Searching artworks..." />;
+  if ((isLoadingData && displayArtworks.length === 0) || (isSearchActive && isLoading)) {
+    return <PageLoader message={isSearchActive ? "Searching..." : "Loading artworks..."} />;
+  }
+
+  if (errorMessage) {
+    return (
+      <View className="flex-1 bg-stone-50 justify-center items-center p-6">
+        <Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
+        <Text className="text-red-500 text-center mt-4">{errorMessage}</Text>
+        <TouchableOpacity onPress={() => refetch()} className="mt-4 bg-gallery-600 px-4 py-2 rounded-lg">
+          <Text className="text-white">Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
   }
 
   return (
@@ -50,7 +101,7 @@ export default function SearchPage() {
         </View>
       </View>
 
-      {/* Results Header & Filter Toggle */}
+      {/* Results Header */}
       <View className="flex-row justify-between items-center px-4 mb-2">
         <Text className="text-stone-500 text-sm">{totalCount} results</Text>
         <TouchableOpacity
@@ -64,7 +115,7 @@ export default function SearchPage() {
 
       {/* Artworks Grid */}
       <FlatList
-        data={allArtworks}
+        data={displayArtworks}
         keyExtractor={(item) => item.id}
         numColumns={2}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
@@ -77,23 +128,26 @@ export default function SearchPage() {
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
         ListFooterComponent={
-          isFetchingNextPage ? (
-            <View className="py-4">
-              <ActivityIndicator size="small" color="#8b5cf6" />
-            </View>
+          isFetchingNextPage && isSearchActive ? (
+            <View className="py-4"><ActivityIndicator size="small" color="#8b5cf6" /></View>
           ) : null
         }
         ListEmptyComponent={
-          !isLoading ? (
+          !isLoadingData && displayArtworks.length === 0 ? (
             <View className="items-center py-12">
               <Ionicons name="image-outline" size={48} color="#d6d3d1" />
-              <Text className="text-stone-500 mt-2">No artworks found</Text>
+              <Text className="text-stone-500 mt-2">
+                {isSearchActive ? "No artworks found" : "Start typing to search"}
+              </Text>
+              {!isSearchActive && !isArtist && (
+                <Text className="text-stone-400 text-sm mt-1">Try searching for something</Text>
+              )}
             </View>
           ) : null
         }
       />
 
-      {/* Filter Modal */}
+      {/* Filter Modal (unchanged) */}
       <Modal visible={showFilters} animationType="slide" transparent>
         <View className="flex-1 bg-black/50 justify-end">
           <View className="bg-white rounded-t-3xl h-[80%]">
@@ -107,10 +161,7 @@ export default function SearchPage() {
               <FilterSidebar filters={filters} onFilterChange={setFilters} />
             </ScrollView>
             <View className="p-4 border-t border-stone-100">
-              <TouchableOpacity
-                onPress={() => setShowFilters(false)}
-                className="bg-gallery-600 py-3 rounded-xl"
-              >
+              <TouchableOpacity onPress={() => setShowFilters(false)} className="bg-gallery-600 py-3 rounded-xl">
                 <Text className="text-white text-center font-medium">Apply Filters</Text>
               </TouchableOpacity>
             </View>

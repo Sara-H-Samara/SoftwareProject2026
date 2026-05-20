@@ -20,10 +20,16 @@ export function useToggleLike() {
     mutationFn: (artworkId: string) => likesApi.toggleLike(artworkId),
     onSuccess: (data, artworkId) => {
       queryClient.setQueryData(likeKeys.artwork(artworkId), data);
+      queryClient.invalidateQueries({ queryKey: likeKeys.artwork(artworkId) });
+      queryClient.invalidateQueries({ queryKey: ['artist-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['galleries'] });
+      queryClient.invalidateQueries({ queryKey: ['artist-artworks'] });
+      // ✅ تأكد من أن المفتاح هو بالضبط ['analytics-summary']
+      queryClient.invalidateQueries({ queryKey: ['analytics-summary'] });
       Toast.show({ type: 'success', text1: data.isLiked ? 'Liked!' : 'Unliked' });
     },
     onError: (error: any) => {
-      console.log('Toggle like error:', error.response?.status, error.response?.data);
+      console.log('Toggle like error:', error?.response?.status, error?.response?.data);
       Toast.show({ type: 'error', text1: 'Failed to update like' });
     },
   });

@@ -18,24 +18,27 @@ export function useArtworkReviews(artworkId: string, page: number = 1, pageSize:
 }
 
 export function useCreateReview() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: CreateReviewRequest) => reviewsApi.createReview(data),
     onSuccess: (_, variables) => {
-      // Invalidate reviews for this artwork to refresh the list
-      queryClient.invalidateQueries({ queryKey: reviewKeys.artwork(variables.artworkId) })
+      // Invalidate reviews for this artwork
+      queryClient.invalidateQueries({ queryKey: reviewKeys.artwork(variables.artworkId) });
       
-      // Also invalidate artist stats since rating changed
-      queryClient.invalidateQueries({ queryKey: ['artist-stats'] })
+      // Invalidate artist stats
+      queryClient.invalidateQueries({ queryKey: ['artist-stats'] });
       
-      Toast.show({ type: 'success', text1: '✨ Review submitted successfully!' })
+      // ✅ INVALIDATE ANALYTICS SUMMARY
+      queryClient.invalidateQueries({ queryKey: ['analytics-summary'] });
+      
+      Toast.show({ type: 'success', text1: '✨ Review submitted successfully!' });
     },
     onError: (error: any) => {
-      const message = error.response?.data?.error || 'Failed to submit review'
-      Toast.show({ type: 'error', text1: message })
+      const message = error.response?.data?.error || 'Failed to submit review';
+      Toast.show({ type: 'error', text1: message });
     },
-  })
+  });
 }
 
 export function useUpdateReview() {
@@ -95,3 +98,4 @@ export function useDeleteComment() {
     onError: () => Toast.show({ type: 'error', text1: 'Failed to delete comment' }),
   })
 }
+

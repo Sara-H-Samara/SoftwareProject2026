@@ -64,9 +64,26 @@ export default function GalleryLayoutEditorPage() {
     }
     const base = artworks?.find((a: Artwork) => a.id === selectedArtworkId);
     let rotationY = 0;
-    if (wallPosition.positionX > 0) rotationY = -Math.PI / 2;
-    else if (wallPosition.positionX < 0) rotationY = Math.PI / 2;
-    else if (wallPosition.positionZ > 0) rotationY = Math.PI;
+
+    // FRONT WALL
+    if (wallPosition.positionZ > 0) {
+      rotationY = Math.PI;
+    }
+    
+    // BACK WALL
+    else if (wallPosition.positionZ < 0) {
+      rotationY = 0;
+    }
+    
+    // LEFT WALL
+    else if (wallPosition.positionX < 0) {
+      rotationY = Math.PI / 2;
+    }
+    
+    // RIGHT WALL
+    else if (wallPosition.positionX > 0) {
+      rotationY = -Math.PI / 2;
+    }
 
     const current = positions.get(selectedArtworkId) ?? {};
     const merged: UpdateArtworkPositionRequest = {

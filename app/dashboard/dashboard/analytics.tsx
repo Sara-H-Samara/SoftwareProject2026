@@ -1,6 +1,7 @@
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
-import { useState } from "react";
+import { View, Text, ScrollView, RefreshControl } from "react-native";
+import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useFocusEffect } from "expo-router";
 import api from "@/api/axiosInstance";
 import { PageLoader } from "@/components/common/Spinner";
 import { formatPrice } from "@/utils/helpers";
@@ -17,21 +18,51 @@ interface AnalyticsSummary {
 }
 
 export default function AnalyticsPage() {
+  const [refreshing, setRefreshing] = useState(false);
   const [months, setMonths] = useState(6);
 
-  const { data: summary, isLoading } = useQuery({
+  const { data: summary, isLoading, refetch, isFetching } = useQuery({
     queryKey: ["analytics-summary"],
-    queryFn: async () => (await api.get<AnalyticsSummary>("/api/artworks/analytics/summary")).data,
+    queryFn: async () => {
+      console.log("📊 Fetching analytics summary...");
+      const response = await api.get<AnalyticsSummary>("/api/artworks/analytics/summary");
+      console.log("📊 Analytics data:", response.data);
+      return response.data;
+    },
+    staleTime: 0,           // البيانات تعتبر قديمة فوراً
+    refetchOnMount: true,   // إعادة جلب عند تحميل المكون
+    refetchOnWindowFocus: true,
   });
 
-  if (isLoading) return <PageLoader message="Loading analytics..." />;
+  // إعادة الجلب كلما ظهرت الشاشة (بعد العودة من الإعجاب أو التقييم)
+  useFocusEffect(
+    useCallback(() => {
+      console.log("📊 Analytics screen focused, refetching...");
+      refetch();
+    }, [refetch])
+  );
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  };
+
+  if (isLoading && !summary) return <PageLoader message="Loading analytics..." />;
 
   return (
-    <ScrollView className="flex-1 bg-stone-50 p-4" showsVerticalScrollIndicator={false}>
+    <ScrollView
+      className="flex-1 bg-stone-50 p-4"
+      showsVerticalScrollIndicator={false}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+    >
       <View className="flex-row justify-between items-center mb-6">
         <View>
           <Text className="font-display text-2xl font-bold text-stone-800">Analytics</Text>
           <Text className="text-stone-500 text-sm mt-0.5">Track your gallery performance</Text>
+          {isFetching && !refreshing && (
+            <Text className="text-xs text-gallery-500 mt-1">Updating...</Text>
+          )}
         </View>
         <ExportButtons months={months} />
       </View>
