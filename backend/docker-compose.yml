@@ -1,0 +1,113 @@
+version: '3.9'
+
+# ── VirtualArtGallery — Full Stack Docker Compose ─────────────────────────────
+#
+# Services:
+#   api        — ASP.NET Core 8 backend  (port 5001)
+#   web        — Vite React frontend      (port 3000)
+#   db         — SQL Server 2022          (port 1433)
+#   azurite    — Azure Storage emulator   (ports 10000-10002)
+#
+# Usage:
+#   docker compose up --build          # Start all services
+#   docker compose up api db azurite   # Backend only (no frontend container)
+#   docker compose down -v             # Stop and remove volumes
+
+services:
+
+  # ── SQL Server ───────────────────────────────────────────────────────────────
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: vag_sqlserver
+    environment:
+      SA_PASSWORD: "${DB_SA_PASSWORD:-VagDev!Str0ng}"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"${DB_SA_PASSWORD:-VagDev!Str0ng}\" -C -Q \"SELECT 1\" || exit 1"]
+      interval: 15s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  # ── Azurite (Azure Storage emulator) ─────────────────────────────────────────
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    container_name: vag_azurite
+    command: "azurite --loose --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --skipApiVersionCheck"
+    ports:
+      - "10000:10000"   # Blob
+      - "10001:10001"   # Queue
+      - "10002:10002"   # Table
+    volumes:
+      - azurite_data:/data
+    restart: unless-stopped
+
+  # ── ASP.NET Core API ──────────────────────────────────────────────────────────
+  api:
+    build:
+      context: ./backend
+      dockerfile: VirtualArtGallery.Api/Dockerfile
+    container_name: vag_api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: "http://+:80"
+      ConnectionStrings__DefaultConnection: >
+        Server=db,1433;Database=VirtualArtGalleryDb;
+        User Id=sa;Password=${DB_SA_PASSWORD:-VagDev!Str0ng};
+        TrustServerCertificate=True;MultipleActiveResultSets=True
+      # ✅ تصحيح إعدادات CloudStorage
+      CloudStorageSettings__ConnectionString: "UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://azurite"
+      CloudStorageSettings__AccountName: "devstoreaccount1"
+      CloudStorageSettings__BaseUrl: "http://azurite:10000/devstoreaccount1"
+      JwtSettings__Secret: "${JWT_SECRET:-DevSecretKeyMustBeAtLeast32CharsLongForHmacSha256!!}"
+      JwtSettings__Issuer: "VirtualArtGallery"
+      JwtSettings__Audience: "VirtualArtGalleryUsers"
+      JwtSettings__AccessTokenExpiryMinutes: "60"
+      JwtSettings__RefreshTokenExpiryDays: "30"
+      # ✅ OpenAI settings (optional)
+      OpenAISettings__Endpoint: "${OPENAI_ENDPOINT:-}"
+      OpenAISettings__ApiKey: "${OPENAI_API_KEY:-}"
+      OpenAISettings__DeploymentName: "${OPENAI_DEPLOYMENT:-gpt-4o}"
+      OpenAISettings__UseAzure: "false"
+      # ✅ Email settings (optional)
+      EmailSettings__SmtpHost: "${EMAIL_SMTP_HOST:-}"
+      EmailSettings__SmtpPort: "${EMAIL_SMTP_PORT:-587}"
+      EmailSettings__SenderEmail: "${EMAIL_FROM:-noreply@virtualgallery.local}"
+      EmailSettings__SenderName: "Virtual Art Gallery"
+      EmailSettings__Username: "${EMAIL_USERNAME:-}"
+      EmailSettings__Password: "${EMAIL_PASSWORD:-}"
+      # ✅ Stripe settings (optional)
+      StripeSettings__SecretKey: "${STRIPE_SECRET_KEY:-}"
+      StripeSettings__PublishableKey: "${STRIPE_PUBLISHABLE_KEY:-}"
+    ports:
+      - "5001:80"
+    depends_on:
+      db:
+        condition: service_healthy
+      azurite:
+        condition: service_started
+    restart: unless-stopped
+
+  # ── Vite React Web Frontend ───────────────────────────────────────────────────
+  web:
+    build:
+      context: ./web-frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: "http://localhost:5001"
+        VITE_APP_NAME: "Virtual Art Gallery"
+    container_name: vag_web
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  sqlserver_data:
+  azurite_data:
