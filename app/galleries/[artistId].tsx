@@ -1,7 +1,8 @@
-import { View, Text, ScrollView, Image, TouchableOpacity, FlatList } from "react-native";
+import { View, Text, ScrollView, Image, TouchableOpacity } from "react-native";
 import { useLocalSearchParams, Link, useRouter } from "expo-router";
 import { useArtistGallery, useArtistArtworks } from "@/hooks/useGallery";
 import { useArtistStats } from "@/hooks/useFollows";
+import { useArtworkReviews } from "@/hooks/useReviews";
 import { PageLoader } from "@/components/common/Spinner";
 import { LikeButton } from "@/components/likes/LikeButton";
 import { FollowButton } from "@/components/follows/FollowButton";
@@ -10,6 +11,37 @@ import { formatPrice, getInitials } from "@/utils/helpers";
 import { Button } from "@/components/common/Button";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
+import type { Artwork } from "@/types";
+
+// Component to display artwork card with its own rating fetch
+function ArtworkCard({ artwork }: { artwork: Artwork }) {
+  const { data: reviews, isLoading: ratingLoading } = useArtworkReviews(artwork.id, 1, 5);
+  const averageRating = !ratingLoading && reviews && reviews.length > 0
+    ? reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviews.length
+    : 0;
+
+  return (
+    <Link href={`/artwork/${artwork.id}`} asChild>
+      <TouchableOpacity className="w-[48%] bg-white rounded-xl overflow-hidden border border-stone-100">
+        <Image source={{ uri: artwork.imageUrl }} className="w-full aspect-square" />
+        <View className="p-2">
+          <Text className="font-medium text-stone-800 truncate">{artwork.title}</Text>
+          <View className="flex-row justify-between items-center mt-1">
+            <LikeButton artworkId={artwork.id} size="sm" showCount />
+            {ratingLoading ? (
+              <View className="w-16 h-4 bg-stone-100 rounded" />
+            ) : (
+              <RatingStars rating={Math.round(averageRating)} size="sm" readonly />
+            )}
+          </View>
+          {artwork.price != null && (
+            <Text className="text-gallery-600 font-bold mt-1">{formatPrice(artwork.price)}</Text>
+          )}
+        </View>
+      </TouchableOpacity>
+    </Link>
+  );
+}
 
 export default function GalleryLandingPage() {
   const { artistId } = useLocalSearchParams<{ artistId: string }>();
@@ -57,10 +89,15 @@ export default function GalleryLandingPage() {
             </View>
           </View>
           {gallery.bio && <Text className="text-stone-600 mt-4">{gallery.bio}</Text>}
-          <View className="flex-row justify-between mt-4">
+          <View className="flex-col gap-3 mt-4">
             <Link href={`/galleries/${artistId}/3d`} asChild>
               <Button leftIcon={<Ionicons name="cube-outline" size={18} color="white" />}>
                 Enter 3D Gallery
+              </Button>
+            </Link>
+            <Link href={`/avatar-customize?next=/galleries/${artistId}/3d`} asChild>
+              <Button variant="secondary" leftIcon={<Ionicons name="person-outline" size={18} color="#78716c" />}>
+                Customize Avatar
               </Button>
             </Link>
             <FollowButton artistId={artistId!} size="md" />
@@ -72,9 +109,9 @@ export default function GalleryLandingPage() {
       {stats && (
         <View className="flex-row justify-around mt-6 px-4">
           <StatItem value={stats.totalArtworks} label="Artworks" icon="images-outline" />
-          <StatItem value={stats.totalLikes} label="Likes" icon="heart-outline" />
+    
           <StatItem value={stats.totalFollowers} label="Followers" icon="people-outline" />
-          <StatItem value={stats.averageRating.toFixed(1)} label="Rating" icon="star-outline" />
+         
         </View>
       )}
 
@@ -102,21 +139,7 @@ export default function GalleryLandingPage() {
         </Text>
         <View className="flex-row flex-wrap gap-3">
           {filtered.map(aw => (
-            <Link key={aw.id} href={`/artwork/${aw.id}`} asChild>
-              <TouchableOpacity className="w-[48%] bg-white rounded-xl overflow-hidden border border-stone-100">
-                <Image source={{ uri: aw.imageUrl }} className="w-full aspect-square" />
-                <View className="p-2">
-                  <Text className="font-medium text-stone-800 truncate">{aw.title}</Text>
-                  <View className="flex-row justify-between items-center mt-1">
-                    <LikeButton artworkId={aw.id} size="sm" showCount />
-                    <RatingStars rating={0} size="sm" readonly />
-                  </View>
-                  {aw.price != null && (
-                    <Text className="text-gallery-600 font-bold mt-1">{formatPrice(aw.price)}</Text>
-                  )}
-                </View>
-              </TouchableOpacity>
-            </Link>
+            <ArtworkCard key={aw.id} artwork={aw} />
           ))}
         </View>
       </View>

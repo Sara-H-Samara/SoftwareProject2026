@@ -7,7 +7,8 @@ using VirtualArtGallery.Core.Entities;
 using VirtualArtGallery.Core.Interfaces;
 using VirtualArtGallery.Infrastructure.Data;
 using Microsoft.Extensions.Logging;
-
+using VirtualArtGallery.Application.DTOs;
+using VirtualArtGallery.Core.Enums;
 namespace VirtualArtGallery.Application.Services;
 
 /// <summary>
@@ -18,15 +19,21 @@ namespace VirtualArtGallery.Application.Services;
 public class ArtworkService
 {
     private readonly ApplicationDbContext _db;
-    private readonly ICloudStorageService _storage;
-    private readonly ILogger<ArtworkService> _logger;
+private readonly ICloudStorageService _storage;
+private readonly ILogger<ArtworkService> _logger;
+private readonly NotificationService _notificationService;
 
-    public ArtworkService(ApplicationDbContext db, ICloudStorageService storage, ILogger<ArtworkService> logger)
-    {
-        _db = db;
-        _storage = storage;
-        _logger = logger;
-    }
+public ArtworkService(
+    ApplicationDbContext db,
+    ICloudStorageService storage,
+    ILogger<ArtworkService> logger,
+    NotificationService notificationService)
+{
+    _db = db;
+    _storage = storage;
+    _logger = logger;
+    _notificationService = notificationService;
+}
 
     // ── Read ───────────────────────────────────────────────────────────────────
 
@@ -74,12 +81,81 @@ public class ArtworkService
         return Result<ArtworkDto>.Success(MapToDto(artwork));
     }
 
-    // ── Create ─────────────────────────────────────────────────────────────────
+    // ── Search with Filters ────────────────────────────────────────────────────
 
     /// <summary>
-    /// Creates a new artwork record. The image file is uploaded first, then
-    /// the resulting URL is stored with the metadata.
+    /// Search published artworks with full filtering and sorting.
     /// </summary>
+    public async Task<Result<SearchResultDto<ArtworkDto>>> SearchArtworksAsync(
+        string? query,
+        int page,
+        int pageSize,
+        decimal? minPrice = null,
+        decimal? maxPrice = null,
+        string? artworkType = null,
+        string? sortBy = null)
+    {
+        pageSize = Math.Clamp(pageSize, 1, AppConstants.Pagination.MaxPageSize);
+        page = Math.Max(1, page);
+
+        var queryable = _db.Artworks
+            .Include(a => a.Artist)
+            .Where(a => a.IsPublished)
+            .AsQueryable();
+
+        // --- Text search ---
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            var lowerQuery = query.ToLower();
+            queryable = queryable.Where(a =>
+                a.Title.ToLower().Contains(lowerQuery) ||
+                (a.Description != null && a.Description.ToLower().Contains(lowerQuery)) ||
+                (a.Artist != null && a.Artist.DisplayName != null && a.Artist.DisplayName.ToLower().Contains(lowerQuery))
+            );
+        }
+
+        // --- Price range ---
+        if (minPrice.HasValue)
+            queryable = queryable.Where(a => a.Price >= minPrice.Value);
+        if (maxPrice.HasValue)
+            queryable = queryable.Where(a => a.Price <= maxPrice.Value);
+
+        // --- Artwork type ---
+        if (!string.IsNullOrWhiteSpace(artworkType) && Enum.TryParse<ArtworkType>(artworkType, true, out var type))
+            queryable = queryable.Where(a => a.ArtworkType == type);
+
+        // --- Sorting ---
+        queryable = sortBy?.ToLower() switch
+        {
+            "oldest" => queryable.OrderBy(a => a.CreatedAt),
+            "price_asc" => queryable.OrderBy(a => a.Price),
+            "price_desc" => queryable.OrderByDescending(a => a.Price),
+            "most_liked" => queryable.OrderByDescending(a => a.LikesCount),
+            "top_rated" => queryable.OrderByDescending(a => a.AverageRating),
+            _ => queryable.OrderByDescending(a => a.CreatedAt)   // newest default
+        };
+
+        var totalCount = await queryable.CountAsync();
+        var items = await queryable
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(a => MapToDto(a))
+            .ToListAsync();
+
+        var result = new SearchResultDto<ArtworkDto>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize,
+            HasNextPage = page * pageSize < totalCount
+        };
+
+        return Result<SearchResultDto<ArtworkDto>>.Success(result);
+    }
+
+    // ── Create ─────────────────────────────────────────────────────────────────
+
     public async Task<Result<ArtworkDto>> CreateAsync(
         string artistId,
         CreateArtworkRequestDto dto,
@@ -128,20 +204,48 @@ public class ArtworkService
             ScaleX = dto.ScaleX,
             ScaleY = dto.ScaleY,
             ScaleZ = dto.ScaleZ,
-            IsPublished = dto.IsPublished, // Default is true in the DTO record definition
+            IsPublished = dto.IsPublished,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
 
-        _db.Artworks.Add(artwork);
-        await _db.SaveChangesAsync();
+       _db.Artworks.Add(artwork);
+await _db.SaveChangesAsync();
 
-        _logger.LogInformation("[ArtworkService] Successfully created artwork. Id: {ArtworkId}, IsPublished: {IsPublished}", artwork.Id, artwork.IsPublished);
+_logger.LogInformation(
+    "[ArtworkService] Successfully created artwork. Id: {ArtworkId}, IsPublished: {IsPublished}",
+    artwork.Id,
+    artwork.IsPublished
+);
 
-        // Reload to include navigation (Artist name)
-        await _db.Entry(artwork).Reference(a => a.Artist).LoadAsync();
+// Reload to include navigation Artist name
+await _db.Entry(artwork).Reference(a => a.Artist).LoadAsync();
 
-        return Result<ArtworkDto>.Success(MapToDto(artwork));
+// ✅ Notify followers only if artwork is published
+if (artwork.IsPublished)
+{
+    var artistName = artwork.Artist?.DisplayName ?? artwork.Artist?.Email ?? "An artist";
+
+    var followerIds = await _db.Follows
+        .Where(f => f.FollowedId == artistId)
+        .Select(f => f.FollowerId)
+        .ToListAsync();
+
+    foreach (var followerId in followerIds)
+    {
+        await _notificationService.CreateNotificationAsync(
+            userId: followerId,
+            type: "new_artwork",
+            triggeredByUserId: artistId,
+            triggeredByName: artistName,
+            entityId: artwork.Id,
+            entityTitle: artwork.Title,
+            message: $"{artistName} uploaded a new artwork \"{artwork.Title}\""
+        );
+    }
+}
+
+return Result<ArtworkDto>.Success(MapToDto(artwork));
     }
 
     // ── Update ─────────────────────────────────────────────────────────────────
@@ -161,6 +265,7 @@ public class ArtworkService
 
         if (artwork.ArtistId != artistId)
             return Result<ArtworkDto>.Forbidden("You do not own this artwork.");
+            var wasPublished = artwork.IsPublished;
 
         // Apply only the fields that were provided
         if (dto.Title != null) artwork.Title = dto.Title;
@@ -184,9 +289,32 @@ public class ArtworkService
         if (dto.ScaleZ.HasValue) artwork.ScaleZ = dto.ScaleZ.Value;
 
         artwork.UpdatedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync();
+await _db.SaveChangesAsync();
 
-        return Result<ArtworkDto>.Success(MapToDto(artwork));
+if (!wasPublished && artwork.IsPublished)
+{
+    var artistName = artwork.Artist?.DisplayName ?? artwork.Artist?.Email ?? "An artist";
+
+    var followerIds = await _db.Follows
+        .Where(f => f.FollowedId == artistId)
+        .Select(f => f.FollowerId)
+        .ToListAsync();
+
+    foreach (var followerId in followerIds)
+    {
+        await _notificationService.CreateNotificationAsync(
+            userId: followerId,
+            type: "new_artwork",
+            triggeredByUserId: artistId,
+            triggeredByName: artistName,
+            entityId: artwork.Id,
+            entityTitle: artwork.Title,
+            message: $"{artistName} uploaded a new artwork \"{artwork.Title}\""
+        );
+    }
+}
+
+return Result<ArtworkDto>.Success(MapToDto(artwork));
     }
 
     /// <summary>
@@ -266,6 +394,47 @@ public class ArtworkService
         await _db.SaveChangesAsync();
         return Result.Success();
     }
+
+    public async Task<Result<AnalyticsSummaryDto>> GetAnalyticsSummaryAsync(string artistId)
+{
+    var artworkIds = await _db.Artworks
+        .Where(a => a.ArtistId == artistId)
+        .Select(a => a.Id)
+        .ToListAsync();
+
+    var totalArtworks = artworkIds.Count;
+
+    var totalLikes = await _db.Likes
+        .CountAsync(l => artworkIds.Contains(l.ArtworkId));
+
+    var totalReviews = await _db.Reviews
+        .CountAsync(r => artworkIds.Contains(r.ArtworkId));
+
+    var averageRating = await _db.Reviews
+        .Where(r => artworkIds.Contains(r.ArtworkId))
+        .Select(r => (double?)r.Rating)
+        .AverageAsync() ?? 0;
+
+    var totalFollowers = await _db.Follows
+        .CountAsync(f => f.FollowedId == artistId);
+
+    // مؤقتًا إذا ما بدك تدخل orders الآن
+    var totalOrders = 0;
+    var totalSales = 0m;
+
+    var dto = new AnalyticsSummaryDto
+    {
+        TotalArtworks = totalArtworks,
+        TotalLikes = totalLikes,
+        TotalReviews = totalReviews,
+        TotalFollowers = totalFollowers,
+        AverageRating = averageRating,
+        TotalOrders = totalOrders,
+        TotalSales = totalSales
+    };
+
+    return Result<AnalyticsSummaryDto>.Success(dto);
+}
 
     // ── Private Helpers ────────────────────────────────────────────────────────
 

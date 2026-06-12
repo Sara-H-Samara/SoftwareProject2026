@@ -461,3 +461,49 @@ export interface MountPoint {
   height?: number;
   depth?: number;
 }
+
+// ── Avatar ───────────────────────────────────────────────────────────────────
+
+export type HairStyle = 'bald' | 'short' | 'long' | 'curly' | 'ponytail'
+export type ShirtStyle = 'tshirt' | 'hoodie' | 'jacket' | 'tank'
+export type PantsStyle = 'pants' | 'shorts' | 'skirt'
+export type AccessoryStyle =
+  | 'none'
+  | 'glasses'
+  | 'sunglasses'
+  | 'hat'
+  | 'beanie'
+  | 'headphones'
+  | 'earrings'
+  | 'mask'
+
+export interface Avatar {
+  id: string
+  userId: string
+  skinColor: string
+  height: number
+  hairStyle: HairStyle
+  hairColor: string
+  shirtStyle: ShirtStyle
+  shirtColor: string
+  pantsStyle: PantsStyle
+  pantsColor: string
+  shoesColor: string
+  accessory: AccessoryStyle
+  accessoryColor: string
+  updatedAt: string
+}
+
+export interface UpdateAvatarRequest {
+  skinColor?: string
+  height?: number
+  hairStyle?: HairStyle
+  hairColor?: string
+  shirtStyle?: ShirtStyle
+  shirtColor?: string
+  pantsStyle?: PantsStyle
+  pantsColor?: string
+  shoesColor?: string
+  accessory?: AccessoryStyle
+  accessoryColor?: string
+}

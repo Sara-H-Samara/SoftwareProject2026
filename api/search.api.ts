@@ -2,7 +2,6 @@ import api from './axiosInstance';
 import type { SearchFilters, SearchResult, Artwork } from '@/types';
 
 export const searchApi = {
-  /** Search artworks with filters */
   searchArtworks: (filters: SearchFilters) => {
     const params = new URLSearchParams();
     
@@ -14,14 +13,14 @@ export const searchApi = {
     if (filters.page) params.append('page', filters.page.toString());
     if (filters.pageSize) params.append('pageSize', filters.pageSize.toString());
     
-    return api.get<SearchResult<Artwork>>(`/api/artworks/search?${params.toString()}`).then(r => r.data);
+    const url = `/api/artworks/search?${params.toString()}`;
+    console.log('🔍 Search URL:', url);  // للتأكد من المعاملات
+    return api.get<SearchResult<Artwork>>(url).then(r => r.data);
   },
   
-  /** Get popular searches */
   getPopularSearches: () => 
     api.get<string[]>('/api/artworks/popular-searches').then(r => r.data),
   
-  /** Get search suggestions */
   getSearchSuggestions: (query: string) =>
     api.get<string[]>(`/api/artworks/suggestions?query=${query}`).then(r => r.data),
 };

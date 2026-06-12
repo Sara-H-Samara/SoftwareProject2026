@@ -10,9 +10,10 @@ interface CommentSectionProps {
   artworkId?: string;
   reviewId?: string;
   comments: Comment[];
+  canComment?: boolean;
 }
 
-export function CommentSection({ artworkId, reviewId, comments }: CommentSectionProps) {
+export function CommentSection({ artworkId, reviewId, comments ,canComment = true}: CommentSectionProps) {
   const { isAuthenticated } = useAuthStore();
   const { mutate: createComment, isPending } = useCreateComment();
   const [newComment, setNewComment] = useState("");
@@ -38,7 +39,7 @@ export function CommentSection({ artworkId, reviewId, comments }: CommentSection
 
   return (
     <View>
-      {isAuthenticated && (
+      {isAuthenticated && canComment &&(
         <View className="mb-4">
           {replyTo && (
             <View className="flex-row items-center justify-between bg-stone-100 px-3 py-2 rounded-t-lg">
@@ -75,7 +76,12 @@ export function CommentSection({ artworkId, reviewId, comments }: CommentSection
           data={comments}
           keyExtractor={(item) => item.id}
           scrollEnabled={false}
-          renderItem={({ item }) => <CommentItem comment={item} onReply={setReplyTo} />}
+          renderItem={({ item }) => (
+            <CommentItem
+              comment={item}
+              onReply={canComment ? setReplyTo : undefined}
+            />
+          )}
         />
       )}
     </View>

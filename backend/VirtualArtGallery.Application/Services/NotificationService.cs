@@ -50,10 +50,16 @@ public class NotificationService
         await _context.SaveChangesAsync();
 
         // Send email notification if enabled
-        await SendEmailIfEnabled(userId, type, message, 
-            type == "like" || type == "review" ? $"/artwork/{entityId}" : 
-            type == "comment" ? $"/artwork/{entityId}" : 
-            type == "follow" ? $"/galleries/{triggeredByUserId}" : "");
+        await SendEmailIfEnabled(
+    userId,
+    type,
+    message,
+    type == "like" || type == "review" || type == "comment" || type == "new_artwork"
+        ? $"/artwork/{entityId}"
+        : type == "follow"
+            ? $"/galleries/{triggeredByUserId}"
+            : ""
+);
 
         return Result<NotificationDto>.Success(MapToDto(notification));
     }
@@ -74,6 +80,7 @@ private async Task SendEmailIfEnabled(string userId, string type, string message
             "follow" => settings.EmailFollows,
             "comment" => settings.EmailComments,
             "review" => settings.EmailReviews,
+            "new_artwork" => true,
             _ => false
         };
 

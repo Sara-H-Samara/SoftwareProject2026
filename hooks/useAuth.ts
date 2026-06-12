@@ -140,23 +140,42 @@ export function useResetPassword() {
 // ─── Update Profile (display name, gallery name, bio) ─────────────────────────
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
-  const { user, updateUser } = useAuthStore();
+  const { updateUser } = useAuthStore();
 
   return useMutation({
     mutationFn: async (data: { displayName?: string; galleryName?: string; bio?: string }) => {
-      const response = await axios.put<{ user: UserProfile }>(
+      const { accessToken } = useAuthStore.getState();
+
+      const response = await axios.put(
         `${API_BASE_URL}/api/auth/profile`,
-        data
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
       );
-      return response.data.user;
+
+      console.log("Update profile response:", response.data);
+
+      return response.data.user ?? response.data;
     },
+
     onSuccess: (updatedUser) => {
       updateUser(updatedUser);
       queryClient.setQueryData(authKeys.profile, updatedUser);
       Toast.show({ type: "success", text1: "Profile updated successfully!" });
     },
+
     onError: (error: any) => {
-      const message = error.response?.data?.error || "Failed to update profile";
+      console.log("Update profile error:", error.response?.status, error.response?.data || error.message);
+
+      const message =
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        "Failed to update profile";
+
       Toast.show({ type: "error", text1: message });
     },
   });
@@ -165,29 +184,52 @@ export function useUpdateProfile() {
 // ─── Update Profile Picture ───────────────────────────────────────────────────
 export function useUpdateProfilePicture() {
   const queryClient = useQueryClient();
-  const { user, updateUser } = useAuthStore();
+  const { updateUser } = useAuthStore();
 
   return useMutation({
     mutationFn: async (file: any) => {
+      const { accessToken } = useAuthStore.getState();
+
       const formData = new FormData();
-      // Expo Image Picker returns an object with uri, name, type
-      formData.append("file", file);
-      const response = await axios.put<{ user: UserProfile }>(
+
+      formData.append("file", {
+        uri: file.uri,
+        name: file.name ?? "profile.jpg",
+        type: file.type ?? "image/jpeg",
+      } as any);
+
+      const response = await axios.post(
         `${API_BASE_URL}/api/auth/profile/picture`,
         formData,
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "multipart/form-data",
+          },
         }
       );
-      return response.data.user;
+
+      return response.data.user ?? response.data;
     },
+
     onSuccess: (updatedUser) => {
       updateUser(updatedUser);
       queryClient.setQueryData(authKeys.profile, updatedUser);
       Toast.show({ type: "success", text1: "Profile picture updated!" });
     },
+
     onError: (error: any) => {
-      const message = error.response?.data?.error || "Failed to update profile picture";
+      console.log(
+        "Picture upload error:",
+        error.response?.status,
+        error.response?.data || error.message
+      );
+
+      const message =
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        "Failed to update profile picture";
+
       Toast.show({ type: "error", text1: message });
     },
   });

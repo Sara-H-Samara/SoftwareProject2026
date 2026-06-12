@@ -21,6 +21,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Review> Reviews => Set<Review>();
     public DbSet<UserBadge> UserBadges => Set<UserBadge>();
     public DbSet<UserNotificationSettings> UserNotificationSettings => Set<UserNotificationSettings>();
+    public DbSet<Avatar> Avatars => Set<Avatar>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -229,6 +230,28 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                   .HasForeignKey(uns => uns.UserId)
                   .OnDelete(DeleteBehavior.Restrict); // Fixed
             entity.HasIndex(uns => uns.UserId).IsUnique();
+        });
+
+        // ── Avatar (one per user) ───────────────────────────────────────
+        builder.Entity<Avatar>(entity =>
+        {
+            entity.HasKey(a => a.Id);
+            entity.Property(a => a.UserId).IsRequired();
+            entity.Property(a => a.SkinColor).IsRequired().HasMaxLength(9);
+            entity.Property(a => a.HairStyle).IsRequired().HasMaxLength(30);
+            entity.Property(a => a.HairColor).IsRequired().HasMaxLength(9);
+            entity.Property(a => a.ShirtStyle).IsRequired().HasMaxLength(30);
+            entity.Property(a => a.ShirtColor).IsRequired().HasMaxLength(9);
+            entity.Property(a => a.PantsStyle).IsRequired().HasMaxLength(30);
+            entity.Property(a => a.PantsColor).IsRequired().HasMaxLength(9);
+            entity.Property(a => a.ShoesColor).IsRequired().HasMaxLength(9);
+            entity.Property(a => a.Accessory).IsRequired().HasMaxLength(30);
+            entity.Property(a => a.AccessoryColor).IsRequired().HasMaxLength(9);
+            entity.HasOne(a => a.User)
+                  .WithMany()
+                  .HasForeignKey(a => a.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(a => a.UserId).IsUnique();
         });
     }
 }

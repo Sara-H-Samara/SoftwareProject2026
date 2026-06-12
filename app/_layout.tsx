@@ -74,6 +74,7 @@ export default function RootLayout() {
               <Stack.Screen name="galleries/index" />
               <Stack.Screen name="galleries/[artistId]" />
               <Stack.Screen name="galleries/[artistId]/3d" />
+              <Stack.Screen name="avatar-customize" />
               <Stack.Screen name="artwork/[id]" />
               <Stack.Screen name="activity" />
               <Stack.Screen name="notifications" />

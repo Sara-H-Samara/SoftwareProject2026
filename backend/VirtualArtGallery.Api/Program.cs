@@ -137,6 +137,7 @@ builder.Services.AddScoped<BadgeService>();
 builder.Services.AddScoped<ReviewService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<ActivityService>();
+builder.Services.AddScoped<AvatarService>();
 
 // ── 8. FluentValidation ───────────────────────────────────────────────────────
 builder.Services.AddFluentValidationAutoValidation();

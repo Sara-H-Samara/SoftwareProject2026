@@ -7,11 +7,27 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// Request interceptor – إضافة التوكين
+// قائمة بالنقاط العامة (لا تحتاج توكن)
+const publicEndpoints = [
+  '/api/auth/',
+  '/api/artworks/search',
+  '/api/artworks/suggestions',
+  '/api/artworks/popular-searches',
+  '/api/galleries',
+  '/api/galleries/search',
+];
+
+function isPublicEndpoint(url?: string): boolean {
+  if (!url) return false;
+  return publicEndpoints.some(endpoint => url.includes(endpoint));
+}
+
+// Request interceptor – إضافة التوكين فقط للنقاط المحمية
 api.interceptors.request.use(
   async (config) => {
-    // لا تضف توكين لمسارات المصادقة
-    if (config.url?.includes("/auth/")) {
+    // لا تضف توكين للنقاط العامة
+    if (isPublicEndpoint(config.url)) {
+      console.log("🔓 Public endpoint, skipping token:", config.url);
       return config;
     }
     

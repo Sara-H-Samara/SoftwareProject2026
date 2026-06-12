@@ -127,7 +127,7 @@ export function FilterSidebar({ filters, onFilterChange }: FilterSidebarProps) {
               onPress={() =>
                 onFilterChange({
                   ...filters,
-                  artworkType: filters.artworkType === type ? undefined : (type as ArtworkType),
+                  artworkType: filters.artworkType === type ? undefined : type,
                 })
               }
               className="flex-row items-center py-2"

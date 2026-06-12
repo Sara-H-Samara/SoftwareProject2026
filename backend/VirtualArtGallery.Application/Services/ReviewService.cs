@@ -58,32 +58,33 @@ public class ReviewService
         await _context.SaveChangesAsync();
         
         // Create notification and activity for artwork owner
-        if (artwork.ArtistId != userId)
-        {
-            var user = await _context.Users.FindAsync(userId);
-            
-            await _notificationService.CreateNotificationAsync(
-                artwork.ArtistId,
-                "review",
-                userId,
-                user?.DisplayName ?? user?.Email,
-                artwork.Id,
-                artwork.Title,
-                $"{user?.DisplayName ?? user?.Email} reviewed your artwork \"{artwork.Title}\" with {dto.Rating} stars"
-            );
-            
-            await _activityService.CreateActivityAsync(
-                artwork.ArtistId,
-                "review",
-                userId,
-                user?.DisplayName ?? user?.Email,
-                user?.ProfilePicUrl,
-                artwork.Id,
-                artwork.Title,
-                artwork.ImageUrl,
-                $"{user?.DisplayName ?? user?.Email} reviewed \"{artwork.Title}\" with {dto.Rating} stars"
-            );
-        }
+if (artwork.ArtistId != userId)
+{
+    var user = await _context.Users.FindAsync(userId);
+    var userName = user?.DisplayName ?? user?.Email ?? "Someone";
+
+    await _notificationService.CreateNotificationAsync(
+        userId: artwork.ArtistId,
+        type: "review",
+        triggeredByUserId: userId,
+        triggeredByName: userName,
+        entityId: artwork.Id,
+        entityTitle: artwork.Title,
+        message: $"{userName} reviewed your artwork \"{artwork.Title}\""
+    );
+
+    await _activityService.CreateActivityAsync(
+        artwork.ArtistId,
+        "review",
+        userId,
+        userName,
+        user?.ProfilePicUrl,
+        artwork.Id,
+        artwork.Title,
+        artwork.ImageUrl,
+        $"{userName} reviewed \"{artwork.Title}\" with {dto.Rating} stars"
+    );
+}
         
         return Result<ReviewResponseDto>.Success(await MapToReviewDto(review));
     }
@@ -196,6 +197,30 @@ public class ReviewService
                 );
             }
         }
+
+        else if (dto.ReviewId.HasValue)
+{
+    var review = await _context.Reviews
+        .Include(r => r.Artwork)
+            .ThenInclude(a => a.Artist)
+        .FirstOrDefaultAsync(r => r.Id == dto.ReviewId.Value);
+
+    if (review?.Artwork != null && review.Artwork.ArtistId != userId)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        var userName = user?.DisplayName ?? user?.Email ?? "Someone";
+
+        await _notificationService.CreateNotificationAsync(
+            userId: review.Artwork.ArtistId,
+            type: "comment",
+            triggeredByUserId: userId,
+            triggeredByName: userName,
+            entityId: review.Artwork.Id,
+            entityTitle: review.Artwork.Title,
+            message: $"{userName} commented on a review for \"{review.Artwork.Title}\""
+        );
+    }
+}
         
         return Result<CommentResponseDto>.Success(await MapToCommentDto(comment));
     }

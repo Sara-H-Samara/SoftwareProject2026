@@ -2,6 +2,7 @@ using FluentValidation;
 using VirtualArtGallery.Application.DTOs.Auth;
 using VirtualArtGallery.Application.DTOs.Artworks;
 using VirtualArtGallery.Application.DTOs.AI;
+using VirtualArtGallery.Application.DTOs.Avatars;
 using VirtualArtGallery.Core.Enums;
 
 namespace VirtualArtGallery.Application.Validators;
@@ -181,5 +182,45 @@ public class InspirationPromptDtoValidator : AbstractValidator<InspirationPrompt
         RuleFor(x => x.ArtistBio)
             .MaximumLength(1000)
             .When(x => x.ArtistBio != null);
+    }
+}
+
+// ── Avatar Validators ────────────────────────────────────────────────────────
+
+public class UpdateAvatarRequestDtoValidator : AbstractValidator<UpdateAvatarRequestDto>
+{
+    private static readonly System.Text.RegularExpressions.Regex HexColor =
+        new(@"^#[0-9A-Fa-f]{6}$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    private static readonly HashSet<string> AllowedHair = new()
+        { "bald", "short", "long", "curly", "ponytail" };
+
+    private static readonly HashSet<string> AllowedShirt = new()
+        { "tshirt", "hoodie", "jacket", "tank" };
+
+    private static readonly HashSet<string> AllowedPants = new()
+        { "pants", "shorts", "skirt" };
+
+    private static readonly HashSet<string> AllowedAccessory = new()
+        { "none", "glasses", "sunglasses", "hat", "beanie", "headphones", "earrings", "mask" };
+
+    public UpdateAvatarRequestDtoValidator()
+    {
+        RuleFor(x => x.SkinColor).Must(c => c == null || HexColor.IsMatch(c)).WithMessage("Invalid skin color hex.");
+        RuleFor(x => x.HairColor).Must(c => c == null || HexColor.IsMatch(c)).WithMessage("Invalid hair color hex.");
+        RuleFor(x => x.ShirtColor).Must(c => c == null || HexColor.IsMatch(c)).WithMessage("Invalid shirt color hex.");
+        RuleFor(x => x.PantsColor).Must(c => c == null || HexColor.IsMatch(c)).WithMessage("Invalid pants color hex.");
+        RuleFor(x => x.ShoesColor).Must(c => c == null || HexColor.IsMatch(c)).WithMessage("Invalid shoes color hex.");
+        RuleFor(x => x.AccessoryColor).Must(c => c == null || HexColor.IsMatch(c)).WithMessage("Invalid accessory color hex.");
+
+        RuleFor(x => x.HairStyle).Must(s => s == null || AllowedHair.Contains(s)).WithMessage("Invalid hair style.");
+        RuleFor(x => x.ShirtStyle).Must(s => s == null || AllowedShirt.Contains(s)).WithMessage("Invalid shirt style.");
+        RuleFor(x => x.PantsStyle).Must(s => s == null || AllowedPants.Contains(s)).WithMessage("Invalid pants style.");
+        RuleFor(x => x.Accessory).Must(s => s == null || AllowedAccessory.Contains(s)).WithMessage("Invalid accessory.");
+
+        RuleFor(x => x.Height)
+            .InclusiveBetween(0.85f, 1.15f)
+            .When(x => x.Height.HasValue)
+            .WithMessage("Height must be between 0.85 and 1.15.");
     }
 }

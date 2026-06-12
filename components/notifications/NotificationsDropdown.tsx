@@ -37,16 +37,23 @@ export function NotificationsDropdown() {
             <FlatList
               data={notifications ?? []}
               keyExtractor={item => item.id}
-              renderItem={({ item }) => (
-                <Link href={`/artwork/${item.entityId}`} asChild onPress={() => setVisible(false)}>
-                  <TouchableOpacity className={`p-3 rounded-lg mb-2 ${!item.isRead ? 'bg-gallery-50' : 'bg-white'}`}>
-                    <Text className="text-stone-800">{item.message}</Text>
-                    <Text className="text-xs text-stone-400 mt-1">
-                      {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
-                    </Text>
-                  </TouchableOpacity>
-                </Link>
-              )}
+              renderItem={({ item }) => {
+                const href =
+                  item.type === 'follow'
+                    ? `/galleries/${item.triggeredByUserId}`
+                    : `/artwork/${item.entityId}`;
+              
+                return (
+                  <Link href={href as any} asChild onPress={() => setVisible(false)}>
+                    <TouchableOpacity className={`p-3 rounded-lg mb-2 ${!item.isRead ? 'bg-gallery-50' : 'bg-white'}`}>
+                      <Text className="text-stone-800">{item.message}</Text>
+                      <Text className="text-xs text-stone-400 mt-1">
+                        {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
+                      </Text>
+                    </TouchableOpacity>
+                  </Link>
+                );
+              }}
             />
           </View>
         </View>
