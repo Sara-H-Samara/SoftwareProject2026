@@ -27,10 +27,10 @@ public class Review
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
     
-    // Navigation properties
+    
     public Artwork? Artwork { get; set; }
     public ApplicationUser? User { get; set; }
     
-    // Replies to this review (comments)
+    
     public ICollection<Comment> Comments { get; set; } = new List<Comment>();
 }

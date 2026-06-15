@@ -7,20 +7,18 @@ import type {
   CreateArtworkRequest,
   UpdateArtworkRequest,
   UpdateArtworkPositionRequest,
-  Artwork,  // ✅ تمت إضافة الاستيراد المفقود
+  Artwork,  
 } from "@/types";
 import api from '@/api/axiosInstance';
 
-// ── Query Keys ────────────────────────────────────────────────────────────────
+
 export const artworkKeys = {
   all: ["artworks"] as const,
   mine: () => [...artworkKeys.all, "mine"] as const,
   detail: (id: string) => [...artworkKeys.all, "detail", id] as const,
 };
 
-// ── Queries ───────────────────────────────────────────────────────────────────
 
-/** All artworks owned by the currently authenticated artist. */
 export function useMyArtworks() {
   const { isAuthenticated, accessToken, user } = useAuthStore();
   
@@ -31,16 +29,16 @@ export function useMyArtworks() {
         console.log("🔍 Fetching my artworks with token (first 20 chars):", accessToken?.substring(0, 20));
         console.log("👤 Current user:", user?.id, user?.email);
         
-        // استخدام api مباشرةً بدلاً من fetch – api.ts سيتعامل مع الـ token تلقائياً
+        
         const response = await api.get<Artwork[]>('/api/artworks/my');
         console.log("✅ Artworks fetched:", response.data?.length);
         return response.data;
       } catch (error: any) {
         console.log("❌ API error:", error?.response?.status, error?.response?.data);
-        // إذا كان الخطأ 401، نحاول تسجيل خروج المستخدم أو تجديد التوكن
+        
         if (error?.response?.status === 401) {
           Toast.show({ type: "error", text1: "Session expired. Please login again." });
-          // يمكنك استدعاء clearAuth هنا إذا أردت
+          
         }
         throw error;
       }
@@ -50,7 +48,7 @@ export function useMyArtworks() {
   });
 }
 
-/** Single artwork by ID (public if published, or own). */
+
 export function useArtwork(id: string) {
   const { accessToken } = useAuthStore();
   return useQuery({
@@ -66,10 +64,7 @@ export function useArtwork(id: string) {
   });
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-/**
- * fetch with timeout support (prevents hanging requests)
- */
+
 async function fetchWithTimeout(
   url: string,
   options: RequestInit = {},
@@ -86,7 +81,7 @@ async function fetchWithTimeout(
     return response;
   } catch (error: unknown) {
     clearTimeout(timer);
-    // في React Native، عند إلغاء الطلب يتم رمي خطأ اسمه "AbortError"
+    
     if (error instanceof Error && error.name === "AbortError") {
       throw new Error("Request timed out. Please check your connection.");
     }
@@ -94,7 +89,7 @@ async function fetchWithTimeout(
   }
 }
 
-// ── Mutations ─────────────────────────────────────────────────────────────────
+
 export function useCreateArtwork() {
   const queryClient = useQueryClient();
   const { accessToken, refreshToken, setAuth, clearAuth } = useAuthStore();
@@ -107,7 +102,7 @@ export function useCreateArtwork() {
       data: CreateArtworkRequest;
       imageFile: any;
     }) => {
-      // Helper to perform the actual upload fetch
+      
       const sendRequest = (token: string) => {
         const formData = new FormData();
         formData.append("title", data.title);
@@ -141,7 +136,7 @@ export function useCreateArtwork() {
       console.log("🚀 Sending upload request...");
       let response = await sendRequest(accessToken);
 
-      // If 401 and refresh token exists, try refreshing once
+     
       if (response.status === 401 && refreshToken) {
         try {
           console.log("🔄 Token expired, attempting one‑time refresh…");
@@ -161,7 +156,7 @@ export function useCreateArtwork() {
             console.log("✅ Token refreshed, retrying upload…");
             response = await sendRequest(authData.accessToken);
           } else {
-            // Refresh failed – clear session and throw
+           
             clearAuth();
             Toast.show({
               type: "error",
@@ -179,7 +174,7 @@ export function useCreateArtwork() {
         }
       }
 
-      // Handle unsuccessful responses after possible retry
+     
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
@@ -204,9 +199,7 @@ export function useCreateArtwork() {
       console.error("❌ Upload error:", message);
       Toast.show({ type: "error", text1: message });
 
-      // If session expired, we already cleared auth above; the UI will react accordingly.
-      // The user will be redirected to the login screen the next time they interact
-      // with a protected route. No further action needed here.
+     
     },
   });
 }

@@ -13,7 +13,7 @@ public class Order
     public DateTime CreatedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
     
-    // Order Items (for storing purchased artworks)
+   
     public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
     
     public ApplicationUser? User { get; set; }

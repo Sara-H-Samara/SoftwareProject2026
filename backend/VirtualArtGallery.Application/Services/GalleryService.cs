@@ -22,7 +22,7 @@ public class GalleryService
         _db = db;
     }
 
-    // ── Browse All Galleries ───────────────────────────────────────────────────
+    
 
     /// <summary>
     /// Returns a paginated list of all artist galleries that have at least one published artwork.
@@ -33,7 +33,7 @@ public class GalleryService
         pageSize = Math.Clamp(pageSize, 1, AppConstants.Pagination.MaxPageSize);
         page = Math.Max(1, page);
 
-        // Get all artists who have at least one published artwork
+        
         var artistsWithArtQuery = _db.Users
             .Where(u => u.UserType == UserType.Artist && u.Artworks.Any(a => a.IsPublished))
             .OrderBy(u => u.GalleryName);
@@ -51,7 +51,7 @@ public class GalleryService
                 u.Bio,
                 u.ProfilePicUrl,
                 ArtworkCount = u.Artworks.Count(a => a.IsPublished),
-                // Grab 3 preview images for the gallery card
+                
                 FeaturedArtworks = u.Artworks
                     .Where(a => a.IsPublished)
                     .OrderBy(a => a.CreatedAt)
@@ -79,7 +79,7 @@ public class GalleryService
         ));
     }
 
-    // ── Single Artist Gallery ──────────────────────────────────────────────────
+    
 
     /// <summary>
     /// Returns profile info and all published artworks for a specific artist.
@@ -113,7 +113,7 @@ public class GalleryService
         return Result<ArtistGalleryInfoDto>.Success(dto);
     }
 
-    // ── Search ─────────────────────────────────────────────────────────────────
+    
 
     /// <summary>
     /// Searches galleries and artworks by keyword.

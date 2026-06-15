@@ -27,18 +27,18 @@ public class ReviewService
         _activityService = activityService;
     }
 
-    // ── Reviews ────────────────────────────────────────────────────────────────
+   
 
     public async Task<Result<ReviewResponseDto>> CreateReviewAsync(string userId, CreateReviewRequestDto dto)
     {
-        // Check if user already reviewed this artwork
+        
         var existingReview = await _context.Reviews
             .FirstOrDefaultAsync(r => r.ArtworkId == dto.ArtworkId && r.UserId == userId);
             
         if (existingReview != null)
             return Result<ReviewResponseDto>.Failure("You have already reviewed this artwork.");
             
-        // Check if artwork exists
+        
         var artwork = await _context.Artworks
             .Include(a => a.Artist)
             .FirstOrDefaultAsync(a => a.Id == dto.ArtworkId);
@@ -57,7 +57,7 @@ public class ReviewService
         _context.Reviews.Add(review);
         await _context.SaveChangesAsync();
         
-        // Create notification and activity for artwork owner
+       
 if (artwork.ArtistId != userId)
 {
     var user = await _context.Users.FindAsync(userId);
@@ -142,11 +142,11 @@ if (artwork.ArtistId != userId)
         return Result<List<ReviewResponseDto>>.Success(reviewDtos);
     }
     
-    // ── Comments ───────────────────────────────────────────────────────────────
+    
     
     public async Task<Result<CommentResponseDto>> CreateCommentAsync(string userId, CreateCommentRequestDto dto)
     {
-        // Validate that either ArtworkId or ReviewId is provided
+       
         if (dto.ArtworkId == null && dto.ReviewId == null)
             return Result<CommentResponseDto>.Failure("Either ArtworkId or ReviewId must be provided.");
             
@@ -163,7 +163,7 @@ if (artwork.ArtistId != userId)
         _context.Comments.Add(comment);
         await _context.SaveChangesAsync();
         
-        // Create notification and activity for artwork owner if comment is on artwork
+       
         if (dto.ArtworkId.HasValue)
         {
             var artwork = await _context.Artworks
@@ -239,7 +239,7 @@ if (artwork.ArtistId != userId)
         return Result.Success();
     }
     
-    // ── Likes ──────────────────────────────────────────────────────────────────
+    
     
     public async Task<Result<LikeResponseDto>> ToggleLikeAsync(string userId, Guid artworkId)
     {
@@ -261,7 +261,7 @@ if (artwork.ArtistId != userId)
             });
             await _context.SaveChangesAsync();
             
-            // Create notification and activity for artwork owner
+           
             var artwork = await _context.Artworks
                 .Include(a => a.Artist)
                 .FirstOrDefaultAsync(a => a.Id == artworkId);
@@ -310,11 +310,11 @@ if (artwork.ArtistId != userId)
         return Result<LikeResponseDto>.Success(new LikeResponseDto(isLiked, likesCount));
     }
     
-    // ── Follows ────────────────────────────────────────────────────────────────
+    
     
     public async Task<Result<FollowResponseDto>> ToggleFollowAsync(string followerId, string followedId)
     {
-        // Can't follow yourself
+       
         if (followerId == followedId)
             return Result<FollowResponseDto>.Failure("You cannot follow yourself.");
             
@@ -336,7 +336,7 @@ if (artwork.ArtistId != userId)
             });
             await _context.SaveChangesAsync();
             
-            // Create notification and activity for followed artist
+           
             var followedUser = await _context.Users.FindAsync(followedId);
             var follower = await _context.Users.FindAsync(followerId);
             
@@ -410,7 +410,7 @@ if (artwork.ArtistId != userId)
         return Result<List<UserProfileDto>>.Success(following);
     }
     
-    // ── Artist Analytics ───────────────────────────────────────────────────────
+   
     
     public async Task<Result<ArtistStatsDto>> GetArtistStatsAsync(string artistId)
     {
@@ -461,7 +461,7 @@ if (artwork.ArtistId != userId)
         ));
     }
     
-    // ── Private Helpers ────────────────────────────────────────────────────────
+   
     
     private async Task<ReviewResponseDto> MapToReviewDto(Review review)
     {

@@ -6,12 +6,12 @@ import { useAuthStore } from "@/store/authStore";
 import { API_BASE_URL } from "@/utils/constants";
 import type { LoginRequest, RegisterRequest, AuthResponse, UserProfile } from "@/types";
 
-// ─── Query Keys ─────────────────────────────────────────────────────────────
+
 export const authKeys = {
   profile: ["auth", "profile"],
 };
 
-// ─── Register ────────────────────────────────────────────────────────────────
+
 export function useRegister() {
   const { setAuth } = useAuthStore();
   const router = useRouter();
@@ -56,7 +56,7 @@ export function useRegister() {
   });
 }
 
-// ─── Login ───────────────────────────────────────────────────────────────────
+
 export function useLogin() {
   const { setAuth } = useAuthStore();
   const router = useRouter();
@@ -83,7 +83,7 @@ export function useLogin() {
   });
 }
 
-// ─── Profile ─────────────────────────────────────────────────────────────────
+
 export function useProfile() {
   const { isAuthenticated } = useAuthStore();
 
@@ -97,7 +97,7 @@ export function useProfile() {
   });
 }
 
-// ─── Logout ──────────────────────────────────────────────────────────────────
+
 export function useLogout() {
   const { clearAuth } = useAuthStore();
   const queryClient = useQueryClient();
@@ -111,7 +111,7 @@ export function useLogout() {
   };
 }
 
-// ─── Forgot / Reset Password ─────────────────────────────────────────────────
+
 export function useForgotPassword() {
   return useMutation({
     mutationFn: async (email: string) => {
@@ -137,7 +137,7 @@ export function useResetPassword() {
   });
 }
 
-// ─── Update Profile (display name, gallery name, bio) ─────────────────────────
+
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
   const { updateUser } = useAuthStore();
@@ -181,7 +181,7 @@ export function useUpdateProfile() {
   });
 }
 
-// ─── Update Profile Picture ───────────────────────────────────────────────────
+
 export function useUpdateProfilePicture() {
   const queryClient = useQueryClient();
   const { updateUser } = useAuthStore();

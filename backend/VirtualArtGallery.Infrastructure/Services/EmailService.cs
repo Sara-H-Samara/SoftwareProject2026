@@ -66,7 +66,7 @@ public Task SendNotificationEmailAsync(string toEmail, string subject, string ht
         await SendAsync(toEmail, subject, htmlBody);
     }
 
-    // ── Private Helpers ────────────────────────────────────────────────────────
+    
 
     private async Task SendAsync(string toEmail, string subject, string htmlBody)
     {
@@ -82,13 +82,7 @@ public Task SendNotificationEmailAsync(string toEmail, string subject, string ht
 
     private Task SendViaSendGridAsync(string toEmail, string subject, string htmlBody)
     {
-        // TODO: Install SendGrid NuGet: dotnet add package SendGrid
-        // var client = new SendGridClient(_settings.ApiKey);
-        // var msg = MailHelper.CreateSingleEmail(
-        //     new EmailAddress(_settings.FromEmail, _settings.FromName),
-        //     new EmailAddress(toEmail),
-        //     subject, null, htmlBody);
-        // await client.SendEmailAsync(msg);
+        
 
         _logger.LogInformation("[SendGrid STUB] Sending '{Subject}' to {Email}", subject, toEmail);
         return Task.CompletedTask;

@@ -1,19 +1,19 @@
 namespace VirtualArtGallery.Application.DTOs.AI;
 
-// ── Artwork Description Generation ────────────────────────────────────────────
+
 
 /// <summary>Sent by the frontend when the artist clicks "Suggest Description".</summary>
 public record DescriptionPromptDto(
     string Title,
     string ArtworkType,
     string? Materials,
-    string? AdditionalContext  // Optional artist notes to guide the AI
+    string? AdditionalContext  
 );
 
 /// <summary>AI-generated description returned to the frontend.</summary>
 public record SuggestedDescriptionDto(string Description);
 
-// ── Inspiration Generation ─────────────────────────────────────────────────────
+
 
 /// <summary>Sent by the artist to get creative ideas based on their profile.</summary>
 public record InspirationPromptDto(

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace VirtualArtGallery.Application.DTOs.Orders;
 
-// ── Request DTOs ──────────────────────────────────────────────────────────────
+
 
 public class CreateCheckoutSessionRequest
 {
@@ -38,7 +38,7 @@ public class OrderItemRequest
     public int Quantity { get; set; }
 }
 
-// ── Response DTOs ─────────────────────────────────────────────────────────────
+
 
 public class OrderDto
 {

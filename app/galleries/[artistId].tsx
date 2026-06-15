@@ -13,7 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import type { Artwork } from "@/types";
 
-// Component to display artwork card with its own rating fetch
+
 function ArtworkCard({ artwork }: { artwork: Artwork }) {
   const { data: reviews, isLoading: ratingLoading } = useArtworkReviews(artwork.id, 1, 5);
   const averageRating = !ratingLoading && reviews && reviews.length > 0

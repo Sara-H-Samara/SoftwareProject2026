@@ -2,7 +2,7 @@ using System;
 
 namespace VirtualArtGallery.Application.DTOs.Reviews;
 
-// ── Request DTOs ─────────────────────────────────────────────────────────────
+
 
 public record CreateReviewRequestDto(
     Guid ArtworkId,
@@ -26,7 +26,7 @@ public record UpdateCommentRequestDto(
     string Content
 );
 
-// ── Response DTOs ─────────────────────────────────────────────────────────────
+
 
 public record ReviewResponseDto(
     Guid Id,

@@ -10,14 +10,14 @@ interface ModelViewer3DProps {
 
 export function ModelViewer3D({ artwork, onClose }: ModelViewer3DProps) {
   const onContextCreate = async (gl: ExpoWebGLRenderingContext) => {
-    // Patch unsupported pixelStorei params
+    
     const _pixelStorei = gl.pixelStorei.bind(gl);
     (gl as any).pixelStorei = (pname: number, param: any) => {
       if (pname === 37440 || pname === 37441) return;
       _pixelStorei(pname, param);
     };
 
-    // Renderer
+   
     const renderer = new THREE.WebGLRenderer({
       context: gl as any,
       canvas: {
@@ -35,9 +35,9 @@ export function ModelViewer3D({ artwork, onClose }: ModelViewer3DProps) {
     });
     renderer.setSize(gl.drawingBufferWidth, gl.drawingBufferHeight, false);
     renderer.setPixelRatio(1);
-    renderer.setClearColor(0x1c1917, 1); // stone-900 background
+    renderer.setClearColor(0x1c1917, 1); 
 
-    // Scene & camera
+    
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
       50,
@@ -48,13 +48,13 @@ export function ModelViewer3D({ artwork, onClose }: ModelViewer3DProps) {
     camera.position.set(0, 0, 3);
     camera.lookAt(0, 0, 0);
 
-    // Lighting
+    
     scene.add(new THREE.AmbientLight(0xffffff, 0.6));
     const dir = new THREE.DirectionalLight(0xffffff, 1);
     dir.position.set(5, 5, 5);
     scene.add(dir);
 
-    // Artwork plane — load texture then build mesh
+    
     const group = new THREE.Group();
     scene.add(group);
 
@@ -86,7 +86,7 @@ export function ModelViewer3D({ artwork, onClose }: ModelViewer3DProps) {
       );
       group.add(mesh);
     } catch {
-      // Fallback: plain coloured plane if image fails
+      
       group.add(
         new THREE.Mesh(
           new THREE.PlaneGeometry(2.2, 2.2),
@@ -95,7 +95,7 @@ export function ModelViewer3D({ artwork, onClose }: ModelViewer3DProps) {
       );
     }
 
-    // Render loop — slowly rotate the artwork
+    
     const animate = () => {
       requestAnimationFrame(animate);
       group.rotation.y += 0.008;

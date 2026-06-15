@@ -15,7 +15,7 @@ public class CollectionService
         _context = context;
     }
 
-    // Get all collections for a user
+    
     public async Task<Result<List<CollectionDto>>> GetUserCollectionsAsync(string userId)
     {
         var collections = await _context.Collections
@@ -29,7 +29,7 @@ public class CollectionService
         return Result<List<CollectionDto>>.Success(dtos);
     }
 
-    // Get a single collection by ID
+    
     public async Task<Result<CollectionDto>> GetCollectionAsync(Guid collectionId, string userId)
     {
         var collection = await _context.Collections
@@ -43,7 +43,7 @@ public class CollectionService
         return Result<CollectionDto>.Success(MapToDto(collection));
     }
 
-    // Create a new collection
+   
     public async Task<Result<CollectionDto>> CreateCollectionAsync(string userId, CreateCollectionRequestDto dto)
     {
         var collection = new Collection
@@ -61,7 +61,7 @@ public class CollectionService
         return Result<CollectionDto>.Success(MapToDto(collection));
     }
 
-    // Update collection metadata
+    
     public async Task<Result<CollectionDto>> UpdateCollectionAsync(Guid collectionId, string userId, UpdateCollectionRequestDto dto)
     {
         var collection = await _context.Collections
@@ -79,7 +79,7 @@ public class CollectionService
         return Result<CollectionDto>.Success(MapToDto(collection));
     }
 
-    // Delete a collection
+    
     public async Task<Result> DeleteCollectionAsync(Guid collectionId, string userId)
     {
         var collection = await _context.Collections
@@ -94,7 +94,7 @@ public class CollectionService
         return Result.Success();
     }
 
-    // Add artwork to collection
+    
     public async Task<Result<CollectionDto>> AddArtworkToCollectionAsync(Guid collectionId, string userId, Guid artworkId)
     {
         var collection = await _context.Collections
@@ -105,7 +105,7 @@ public class CollectionService
         if (collection == null)
             return Result<CollectionDto>.NotFound("Collection not found");
 
-        // Check if artwork already exists in collection
+        
         if (collection.Items.Any(i => i.ArtworkId == artworkId))
             return Result<CollectionDto>.Failure("Artwork already in collection");
 
@@ -126,7 +126,7 @@ public class CollectionService
         _context.CollectionItems.Add(item);
         await _context.SaveChangesAsync();
 
-        // Reload collection with new item
+        
         var updatedCollection = await _context.Collections
             .Include(c => c.Items)
             .ThenInclude(i => i.Artwork)
@@ -135,7 +135,7 @@ public class CollectionService
         return Result<CollectionDto>.Success(MapToDto(updatedCollection!));
     }
 
-    // Remove artwork from collection
+   
     public async Task<Result> RemoveArtworkFromCollectionAsync(Guid collectionId, string userId, Guid artworkId)
     {
         var collection = await _context.Collections
@@ -152,7 +152,7 @@ public class CollectionService
 
         _context.CollectionItems.Remove(item);
         
-        // Reorder remaining items
+        
         var remainingItems = await _context.CollectionItems
             .Where(i => i.CollectionId == collectionId)
             .OrderBy(i => i.Order)
@@ -167,7 +167,7 @@ public class CollectionService
         return Result.Success();
     }
 
-    // Reorder collection items
+    
     public async Task<Result> ReorderCollectionAsync(Guid collectionId, string userId, List<Guid> itemIds)
     {
         var collection = await _context.Collections
@@ -193,7 +193,7 @@ public class CollectionService
         return Result.Success();
     }
 
-    // Mapping
+    
     private static CollectionDto MapToDto(Collection c)
     {
         return new CollectionDto(
@@ -201,7 +201,7 @@ public class CollectionService
             c.Name,
             c.Description,
             c.IsPublic,
-            null, // coverImageUrl can be derived from first artwork if needed
+            null, 
             c.Items.Count,
             c.CreatedAt,
             c.Items.Select(i => new CollectionItemDto(

@@ -1,6 +1,4 @@
-// types/index.ts
 
-// ── Enums (mirror backend C# enums) ──────────────────────────────────────────
 
 export type UserType = 'Artist' | 'Visitor'
 
@@ -14,7 +12,7 @@ export type ArtworkType =
   | 'Drawing' 
   | 'Print' 
 
-// ── Auth ──────────────────────────────────────────────────────────────────────
+
 
 export interface UserProfile {
   id: string
@@ -53,7 +51,7 @@ export interface UpdateProfileRequest {
   bio?: string
 }
 
-// ── Artworks ──────────────────────────────────────────────────────────────────
+
 
 
 export interface Artwork3DPlacement {
@@ -66,11 +64,11 @@ export interface Artwork3DPlacement {
   scaleX: number
   scaleY: number
   scaleZ: number
-  // ✅ إضافة mountPointId هنا لتسهيل ربط العمل الفني بنقاط تثبيت محددة في نموذج GLB
+  
   mountPointId?: string | null;
 }
 
-// ✅ Artwork تمتد من Artwork3DPlacement
+
 export interface Artwork extends Artwork3DPlacement {
   id: string
   title: string
@@ -100,7 +98,7 @@ export interface ArtworkSummary {
   price: number | null
 }
 
-// ✅ CreateArtworkRequest يجب أن تقبل أيضاً mountPointId
+
 export interface CreateArtworkRequest {
   title: string
   description?: string
@@ -118,10 +116,10 @@ export interface CreateArtworkRequest {
   scaleX?: number
   scaleY?: number
   scaleZ?: number
-  mountPointId?: string | null; // ✅ إضافة mountPointId
+  mountPointId?: string | null; 
 }
 
-// ✅ UpdateArtworkRequest يجب أن تقبل أيضاً mountPointId
+
 export interface UpdateArtworkRequest {
   title?: string
   description?: string
@@ -140,15 +138,15 @@ export interface UpdateArtworkRequest {
   scaleX?: number
   scaleY?: number
   scaleZ?: number
-  mountPointId?: string | null; // ✅ إضافة mountPointId
+  mountPointId?: string | null; 
 }
 
-// ✅ UpdateArtworkPositionRequest يجب أن تقبل أيضاً mountPointId
-export interface UpdateArtworkPositionRequest extends Artwork3DPlacement { // ✅ جعلها تمتد من Artwork3DPlacement
+
+export interface UpdateArtworkPositionRequest extends Artwork3DPlacement { 
   artworkId: string
 }
 
-// ── Galleries ─────────────────────────────────────────────────────────────────
+
 
 export interface ArtworkPreview {
   id: string
@@ -173,7 +171,7 @@ export interface GalleryListResponse {
   pageSize: number
 }
 
-// ── AI ────────────────────────────────────────────────────────────────────────
+
 
 export interface DescriptionPrompt {
   title: string
@@ -188,23 +186,21 @@ export interface InspirationPrompt {
   numberOfIdeas?: number
 }
 
-// ── API Errors ────────────────────────────────────────────────────────────────
+
 
 export interface ApiError {
   error: string
   traceId?: string
 }
 
-// ── Pagination ────────────────────────────────────────────────────────────────
+
 
 export interface PaginationParams {
   page: number
   pageSize: number
 }
 
-// ============================================
-// Reviews, Comments, Likes & Follows
-// ============================================
+
 
 export interface Review {
   id: string;
@@ -286,7 +282,7 @@ export interface ArtworkStats {
   createdAt: string;
 }
 
-// ── Search & Filter ──────────────────────────────────────────────────────────
+
 
 export interface SearchFilters {
   query?: string;
@@ -307,11 +303,11 @@ export interface SearchResult<T> {
   hasPrevPage: boolean;
 }
 
-// ── Notifications ────────────────────────────────────────────────────────────
+
 
 export interface Notification {
   id: string;
-  type: 'like' | 'follow' | 'comment' | 'review' | 'artwork_published' | 'order_placed'; // ✅ إضافة أنواع إشعارات محتملة
+  type: 'like' | 'follow' | 'comment' | 'review' | 'artwork_published' | 'order_placed'; 
   triggeredByUserId: string | null;
   triggeredByName: string | null;
   entityId: string | null;
@@ -325,11 +321,11 @@ export interface UnreadCount {
   count: number;
 }
 
-// ── Activity Feed ────────────────────────────────────────────────────────────
+
 
 export interface Activity {
   id: string;
-  type: 'like' | 'follow' | 'comment' | 'review' | 'artwork_published'; // ✅ إضافة 'artwork_published' للنشاطات
+  type: 'like' | 'follow' | 'comment' | 'review' | 'artwork_published'; 
   actorId: string | null;
   actorName: string | null;
   actorAvatar: string | null;
@@ -348,7 +344,6 @@ export interface ActivityFeedResponse {
   hasNextPage: boolean;
 }
 
-// ── Shopping Cart ────────────────────────────────────────────────────────────
 
 export interface CartItem {
   artworkId: string;
@@ -387,7 +382,7 @@ export interface CheckoutResponse {
   clientSecret?: string;
 }
 
-// ── Orders ───────────────────────────────────────────────────────────────────
+
 
 export interface OrderItem {
   id: string;
@@ -409,7 +404,7 @@ export interface Order {
   items: OrderItem[];
 }
 
-// ── Collections ───────────────────────────────────────────────────────────────
+
 
 export interface Collection {
   id: string;
@@ -448,21 +443,19 @@ export interface AddToCollectionRequest {
 }
 
 
-// ============================================
-// ✅ إضافة واجهة MountPoint (مفيدة لتعريف نقاط التثبيت في الـ GLB)
-// ============================================
+
 export interface MountPoint {
-  id: string; // اسم الجسم الفارغ في GLB (مثلاً: "WallMount_01", "Pedestal_A")
+  id: string; 
   position: [number, number, number];
-  rotation: [number, number, number]; // Euler angles
-  scale: [number, number, number]; // مقياس افتراضي
-  type: 'wall' | 'pedestal' | 'floor_display'; // نوع نقطة التثبيت
-  width?: number; // أبعاد نقطة التثبيت (مفيدة في محرر الـ 2D)
+  rotation: [number, number, number]; 
+  scale: [number, number, number]; 
+  type: 'wall' | 'pedestal' | 'floor_display'; 
+  width?: number; 
   height?: number;
   depth?: number;
 }
 
-// ── Avatar ───────────────────────────────────────────────────────────────────
+
 
 export type HairStyle = 'bald' | 'short' | 'long' | 'curly' | 'ponytail'
 export type ShirtStyle = 'tshirt' | 'hoodie' | 'jacket' | 'tank'

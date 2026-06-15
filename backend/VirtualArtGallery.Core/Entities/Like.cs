@@ -14,7 +14,7 @@ public class Like
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
-    // Navigation properties
+    
     public Artwork? Artwork { get; set; }
     public ApplicationUser? User { get; set; }
 }

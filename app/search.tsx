@@ -17,7 +17,7 @@ export default function SearchPage() {
   const isSearchActive = filters.query && filters.query.trim().length > 0;
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage, refetch, error } = useInfiniteSearch(filters);
 
-  // عرض نتائج البحث فقط إذا كان هناك استعلام (حتى للزوار)
+  
   const displayArtworks = data?.pages.flatMap((p) => p.items) ?? [];
   const totalCount = data?.pages[0]?.totalCount ?? 0;
   const isLoadingData = isLoading;

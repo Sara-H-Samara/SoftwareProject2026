@@ -15,8 +15,8 @@ import {
 import type { Avatar } from '@/types'
 import { useAuthStore } from '@/store/authStore'
 
-// ─── Config ───────────────────────────────────────────────────────────────────
-const API_BASE      = process.env.EXPO_PUBLIC_API_URL ?? 'http://192.168.1.184:5005'
+
+const API_BASE      = process.env.EXPO_PUBLIC_API_URL ?? 'http://172.23.37.34:5005'
 const LOOK_SPEED    = 0.006
 const WALK_SPEED    = 8.0
 const TURN_SPEED    = 3.4
@@ -30,7 +30,7 @@ const AVATAR_FORWARD_OFFSET = 2.4
 const AVATAR_OPACITY        = 0.92
 const FLOOR_VISUAL_Y        = -1.79
 
-// ─── Web palette ──────────────────────────────────────────────────────────────
+
 const C = {
   bg:        0x1a140c,
   wall:      0xede8e0,
@@ -44,29 +44,29 @@ const C = {
   frame:     0xc4a96a,
 }
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+
 interface Artwork {
   id: string; title: string; imageUrl: string
   positionX: number; positionY: number; positionZ: number
   rotationY: number; scaleX?: number; scaleY?: number
 }
 
-// ─── Shared geometry/material cache (avoids re-allocation per frame) ──────────
+
 let _sharedGeos: Record<string, THREE.BufferGeometry> | null = null
 function getSharedGeos() {
   if (_sharedGeos) return _sharedGeos
   _sharedGeos = {
     box1:     new THREE.BoxGeometry(1, 1, 1),
     plane1:   new THREE.PlaneGeometry(1, 1),
-    sphere:   new THREE.SphereGeometry(1, 8, 6),        // low-poly spheres
-    cone:     new THREE.ConeGeometry(1, 1, 8),          // 8-seg cone
+    sphere:   new THREE.SphereGeometry(1, 8, 6),        
+    cone:     new THREE.ConeGeometry(1, 1, 8),          
     cylinder: new THREE.CylinderGeometry(1, 1, 1, 12),
     circle:   new THREE.CircleGeometry(1, 16),
   }
   return _sharedGeos
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+
 export default function ArtGallery3D() {
   const { artistId } = useLocalSearchParams<{ artistId: string }>()
   const { user } = useAuthStore()
@@ -78,7 +78,7 @@ export default function ArtGallery3D() {
   const [loadingText, setLoadingText] = useState('Loading gallery...')
   const [posDisplay,  setPosDisplay]  = useState({ x: 0, z: 0, yaw: 0 })
 
-  // Scene refs
+  
   const glRef          = useRef<any>(null)
   const cameraRef      = useRef<THREE.PerspectiveCamera | null>(null)
   const rendererRef    = useRef<Renderer | null>(null)
@@ -91,7 +91,7 @@ export default function ArtGallery3D() {
   const artworksRef    = useRef<Artwork[]>([])
   const lastTimeRef    = useRef(performance.now())
 
-  // Geometry disposal tracker
+ 
   const ownGeosRef  = useRef<THREE.BufferGeometry[]>([])
   const ownMatsRef  = useRef<THREE.Material[]>([])
 
@@ -101,10 +101,10 @@ export default function ArtGallery3D() {
 
   const lastTouch   = useRef({ x: 0, y: 0 })
   const lookDelta   = useRef({ x: 0, y: 0 })
-  const lookVel     = useRef({ x: 0, y: 0 })   // smoothed look velocity
+  const lookVel     = useRef({ x: 0, y: 0 })   
   const controls    = useRef({ forward: false, backward: false, left: false, right: false })
 
-  // Avatar
+  
   const { data: myAvatar } = useMyAvatar()
   const myAvatarRef = useRef<Avatar>(DEFAULT_AVATAR)
   myAvatarRef.current = myAvatar ?? DEFAULT_AVATAR
@@ -126,7 +126,7 @@ export default function ArtGallery3D() {
   const avatarAnimStart = useRef(Date.now())
   const buildSceneRef   = useRef<((gl: any, arts: Artwork[]) => void) | null>(null)
 
-  // ─── Fetch ────────────────────────────────────────────────────────────────
+  
   useEffect(() => {
     if (!artistId) return
     fetch(`${API_BASE}/api/galleries/${artistId}/artworks`)
@@ -144,7 +144,7 @@ export default function ArtGallery3D() {
       buildSceneRef.current?.(glRef.current, artworks)
   }, [artworks])
 
-  // ─── Avatar spawn ─────────────────────────────────────────────────────────
+  
   useEffect(() => {
     if (loading) return
     const scene = sceneRef.current
@@ -180,7 +180,7 @@ export default function ArtGallery3D() {
     scene.add(body)
     avatarSceneRef.current = body
 
-    const shadowGeo = new THREE.CircleGeometry(0.35, 16)   // 16-seg is plenty
+    const shadowGeo = new THREE.CircleGeometry(0.35, 16)   
     const shadowMat = new THREE.MeshBasicMaterial({
       color: 0x000000, transparent: true, opacity: 0.28, depthWrite: false,
     })
@@ -192,18 +192,17 @@ export default function ArtGallery3D() {
     avatarAnimStart.current = Date.now()
   }, [loading, avatarStyleKey])
 
-  // ─── Helpers ──────────────────────────────────────────────────────────────
-  /** Create a geometry and register it for disposal */
+
   const mkGeo = useCallback(<T extends THREE.BufferGeometry>(g: T): T => {
     ownGeosRef.current.push(g); return g
   }, [])
 
-  /** Create a material and register it for disposal */
+  
   const mkMat = useCallback(<T extends THREE.Material>(m: T): T => {
     ownMatsRef.current.push(m); return m
   }, [])
 
-  // ─── Build Scene ──────────────────────────────────────────────────────────
+
   const buildScene = useCallback(async (gl: any, arts: Artwork[]) => {
     if (builtRef.current) return
     builtRef.current = true
@@ -215,14 +214,14 @@ export default function ArtGallery3D() {
       const renderer = new Renderer({ gl })
       renderer.setSize(W, H)
       renderer.setClearColor(C.bg)
-      // ✅ disable shadows entirely — huge GPU win on mobile
+      
       renderer.shadowMap.enabled = false
 
       rendererRef.current = renderer
 
       const scene = new THREE.Scene()
       scene.background = new THREE.Color(C.bg)
-      // ✅ linear fog is cheaper than FogExp2 and avoids near-clip pop
+     
       scene.fog = new THREE.Fog(C.bg, 18, 38)
       sceneRef.current = scene
 
@@ -235,8 +234,7 @@ export default function ArtGallery3D() {
       cameraRef.current = camera
       poseRef.current = { x: 0, z: 8, yaw: Math.PI, pitch: 0 }
 
-      // ── Lighting ──────────────────────────────────────────────────────────
-      // ✅ Fewer, stronger lights — each light is an extra render pass on GPU
+     
       scene.add(new THREE.AmbientLight(0xfff5e6, 1.1))
 
       const sun = new THREE.DirectionalLight(0xfff8f0, 1.6)
@@ -244,22 +242,21 @@ export default function ArtGallery3D() {
       sun.castShadow = false
       scene.add(sun)
 
-      // ✅ 4 point lights instead of 6+1 — still covers ceiling rail feel
+      
       ;[[-4, -5], [-4, 5], [4, -5], [4, 5]].forEach(([x, z]) => {
         const s = new THREE.PointLight(0xfff0d8, 1.1, 16, 1.6)
         s.position.set(x, 4.3, z)
         scene.add(s)
       })
 
-      // ── Shared materials ──────────────────────────────────────────────────
+      
       const wallMat  = mkMat(new THREE.MeshLambertMaterial({ color: C.wall }))
       const floorMat = mkMat(new THREE.MeshLambertMaterial({ color: C.floor }))
       const ceilMat  = mkMat(new THREE.MeshLambertMaterial({ color: C.ceiling }))
-      // ✅ MeshLambertMaterial is ~2× faster than MeshStandardMaterial on mobile
-      //    Use Standard only where metalness/roughness visually matters (trim, sculpture, frames)
+     
       const trimMat  = mkMat(new THREE.MeshStandardMaterial({ color: C.trim, metalness: 0.55, roughness: 0.30 }))
 
-      // ── Floor ─────────────────────────────────────────────────────────────
+      
       const floorGeo = mkGeo(new THREE.PlaneGeometry(20, 20))
       const floor = new THREE.Mesh(floorGeo, floorMat)
       floor.rotation.x = -Math.PI / 2; floor.position.y = -1.8
@@ -271,13 +268,13 @@ export default function ArtGallery3D() {
       ;(grid.material as THREE.Material).transparent = true
       scene.add(grid)
 
-      // ── Ceiling ───────────────────────────────────────────────────────────
+     
       const ceilGeo = mkGeo(new THREE.PlaneGeometry(20.5, 20.5))
       const ceil = new THREE.Mesh(ceilGeo, ceilMat)
       ceil.rotation.x = Math.PI / 2; ceil.position.y = 3.9
       scene.add(ceil)
 
-      // ── Walls (merged into as few meshes as possible) ─────────────────────
+      
       const roomH = 6, halfY = 1.2
       ;[
         { p: [0, halfY, -9.9],  s: [20, roomH, 0.22] },
@@ -290,7 +287,7 @@ export default function ArtGallery3D() {
         scene.add(m)
       })
 
-      // ── Crown moldings + baseboards ───────────────────────────────────────
+     
       const stripMat = trimMat
       const strip = (w: number, h: number, d: number, x: number, y: number, z: number, ry = 0) => {
         const m = new THREE.Mesh(mkGeo(new THREE.BoxGeometry(w, h, d)), stripMat)
@@ -302,7 +299,7 @@ export default function ArtGallery3D() {
       strip(20, 0.14, 0.12, 0, bY, -9.89); strip(20, 0.14, 0.12, 0, bY, 9.89)
       strip(20, 0.14, 0.12, 0, bY, 0, Math.PI/2); strip(20, 0.14, 0.12, 0, bY, 0, -Math.PI/2)
 
-      // ── Pedestal + sculpture ──────────────────────────────────────────────
+      
       const pedMat  = mkMat(new THREE.MeshStandardMaterial({ color: C.pedestal, roughness: 0.25, metalness: 0.35 }))
       const sculMat = mkMat(new THREE.MeshStandardMaterial({ color: C.sculpture, metalness: 0.72, roughness: 0.15 }))
 
@@ -312,7 +309,7 @@ export default function ArtGallery3D() {
       const sculBase = new THREE.Mesh(mkGeo(new THREE.CylinderGeometry(0.82, 0.95, 0.42, 8)), sculMat)
       sculBase.position.set(0, -0.9, 0); scene.add(sculBase)
 
-      // ✅ Reduced TorusKnot segments — still looks great, half the triangles
+      
       const sculBody = new THREE.Mesh(
         mkGeo(new THREE.TorusKnotGeometry(0.65, 0.12, 60, 8, 2, 3)),
         sculMat
@@ -320,7 +317,7 @@ export default function ArtGallery3D() {
       sculBody.position.set(0, -0.38, 0); scene.add(sculBody)
       sculptRef.current = sculBody
 
-      // ── Benches ───────────────────────────────────────────────────────────
+      
       const benchMat = mkMat(new THREE.MeshLambertMaterial({ color: C.bench }))
       ;[[-6, 5.5, 0.3], [6, -5.5, -0.3], [-5.5, -5, 0.9], [5.5, 4.5, -0.9]].forEach(([x, z, ry]) => {
         const seat = new THREE.Mesh(mkGeo(new THREE.BoxGeometry(3.0, 0.18, 0.9)), benchMat)
@@ -332,7 +329,7 @@ export default function ArtGallery3D() {
         })
       })
 
-      // ── Decorative wall panels ─────────────────────────────────────────────
+     
       const panelMat = mkMat(new THREE.MeshLambertMaterial({ color: 0xf7f1e8 }))
 
       const addWallPanel = (x: number, y: number, z: number, w: number, h: number, rotY = 0) => {
@@ -348,9 +345,7 @@ export default function ArtGallery3D() {
       ;[-5.8, 0, 5.8].forEach(z => addWallPanel(-9.76, 1.15, z, 2.4, 2.8, Math.PI / 2))
       ;[-5.8, 0, 5.8].forEach(z => addWallPanel(9.76, 1.15, z, 2.4, 2.8, -Math.PI / 2))
 
-      // ── Decorative plants & flowers ───────────────────────────────────────
-      // ✅ All plants/flowers use shared geometries scaled per instance
-      //    → dramatically fewer GPU buffer uploads
+     
 
       const potMat   = mkMat(new THREE.MeshLambertMaterial({ color: 0x8a5a36 }))
       const soilMat  = mkMat(new THREE.MeshLambertMaterial({ color: 0x2f2016 }))
@@ -358,16 +353,16 @@ export default function ArtGallery3D() {
       const leafMat2 = mkMat(new THREE.MeshLambertMaterial({ color: 0x4f9b58 }))
       const stemMat  = mkMat(new THREE.MeshLambertMaterial({ color: 0x4b8b3b }))
 
-      // ✅ One geometry per shape, reused across all instances
+      
       const potGeo    = mkGeo(new THREE.CylinderGeometry(0.34, 0.26, 0.52, 14))
       const soilGeo   = mkGeo(new THREE.CylinderGeometry(0.26, 0.26, 0.04, 14))
       const leafGeo   = mkGeo(new THREE.ConeGeometry(0.11, 0.82, 8))
-      const stemGeoS  = mkGeo(new THREE.CylinderGeometry(0.01, 0.01, 1, 4))   // scaled per flower
+      const stemGeoS  = mkGeo(new THREE.CylinderGeometry(0.01, 0.01, 1, 4))   
       const petalGeo  = mkGeo(new THREE.SphereGeometry(0.035, 6, 4))
       const centerGeo = mkGeo(new THREE.SphereGeometry(0.018, 6, 4))
       const leafSGeo  = mkGeo(new THREE.SphereGeometry(0.025, 6, 4))
 
-      // Flower petal materials (one per color, reused)
+     
       const flowerColors = [0xff6fae, 0xffd166, 0xa56eff, 0xff7f50, 0xffffff, 0xff4d6d, 0x7bd389, 0x6ecbff]
       const flowerMats = flowerColors.map(c => mkMat(new THREE.MeshLambertMaterial({ color: c })))
       const centerMat  = mkMat(new THREE.MeshLambertMaterial({ color: 0xf4c542 }))
@@ -387,7 +382,7 @@ export default function ArtGallery3D() {
         soil.position.y = -1.28
         g.add(soil)
 
-        for (let i = 0; i < 10; i++) {   // ✅ 10 leaves instead of 13
+        for (let i = 0; i < 10; i++) {   
           const angle = (i / 10) * Math.PI * 2
           const leaf = new THREE.Mesh(leafGeo, i % 2 === 0 ? leafMat1 : leafMat2)
           leaf.scale.setScalar(scale)
@@ -408,7 +403,7 @@ export default function ArtGallery3D() {
       }
 
       function addFlowerBed(x: number, z: number, width = 1.6, depth = 0.6, count = 14) {
-        // ✅ Reduced default count: 14 instead of 18/24/28
+        
         const g = new THREE.Group()
         g.position.set(x, 0, z)
 
@@ -432,7 +427,7 @@ export default function ArtGallery3D() {
 
           const fMat = flowerMats[i % flowerMats.length]
 
-          // ✅ 4 petals instead of 5 — barely noticeable, saves 20% draw calls
+         
           for (let p = 0; p < 4; p++) {
             const petal = new THREE.Mesh(petalGeo, fMat)
             const a = (p / 4) * Math.PI * 2
@@ -456,12 +451,12 @@ export default function ArtGallery3D() {
         scene.add(g)
       }
 
-      // Place plants
+     
       addBigPlant(-7.4, -7.2, 1.0); addBigPlant(7.4, -7.2, 1.0)
       addBigPlant(-7.4,  7.2, 1.0); addBigPlant(7.4,  7.2, 1.0)
       addBigPlant(-5.8,  0,   0.95); addBigPlant(5.8, 0, 0.95)
 
-      // Place flower beds (reduced count per bed)
+      
       addFlowerBed(0,    -7.4, 2.4, 0.7, 16)
       addFlowerBed(0,     7.4, 2.4, 0.7, 16)
       addFlowerBed(-7.4,  0,   0.7, 2.2, 14)
@@ -471,8 +466,7 @@ export default function ArtGallery3D() {
       addFlowerBed(-4.5, -7.4, 1.6, 0.6, 10)
       addFlowerBed( 4.5, -7.4, 1.6, 0.6, 10)
 
-      // ── Particles ─────────────────────────────────────────────────────────
-      // ✅ 80 particles instead of 120
+     
       const pPos = new Float32Array(80 * 3)
       for (let i = 0; i < 80; i++) {
         pPos[i*3]   = (Math.random() - 0.5) * 18
@@ -487,7 +481,7 @@ export default function ArtGallery3D() {
       )
       scene.add(particles)
 
-      // ── Artworks ──────────────────────────────────────────────────────────
+      
       const loader   = new TextureLoader()
       const added    = new Set<string>()
       const host     = API_BASE.replace(/https?:\/\//, '').split(':')[0]
@@ -510,7 +504,7 @@ export default function ArtGallery3D() {
             rotY = z > 0 ? Math.PI : 0
           }
 
-          // ✅ Frame uses MeshStandardMaterial for the metallic look
+         
           const frameMat = mkMat(new THREE.MeshStandardMaterial({ color: C.frame, metalness: 0.65, roughness: 0.25 }))
           const frame = new THREE.Mesh(mkGeo(new THREE.BoxGeometry(scaleW + 0.2, scaleH + 0.2, 0.08)), frameMat)
           frame.position.set(x, art.positionY, z); frame.rotation.y = rotY
@@ -518,7 +512,7 @@ export default function ArtGallery3D() {
 
           const texture = await loader.loadAsync(url)
           texture.minFilter = THREE.LinearFilter
-          // ✅ anisotropy improves texture sharpness with near-zero perf cost
+          
           texture.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy())
           texture.needsUpdate = true
 
@@ -526,12 +520,12 @@ export default function ArtGallery3D() {
           const canvasMesh = new THREE.Mesh(
             mkGeo(new THREE.PlaneGeometry(scaleW, scaleH)),
             mkMat(new THREE.MeshBasicMaterial({ map: texture, side: THREE.FrontSide }))
-            // ✅ MeshBasicMaterial for artworks — no lighting math needed, looks the same
+            
           )
           canvasMesh.position.set(x + nX * 0.06, art.positionY, z + nZ * 0.06)
           canvasMesh.rotation.y = rotY; scene.add(canvasMesh)
 
-          // ✅ Spot per artwork — keep but reduce intensity/range
+         
           const spot = new THREE.SpotLight(0xfff8e8, 1.2, 8, 0.42, 0.5, 1.5)
           spot.position.set(x, 3.5, z + nZ * 2)
           spot.target.position.set(x, art.positionY, z)
@@ -543,7 +537,7 @@ export default function ArtGallery3D() {
 
       setLoading(false)
 
-      // ─── Animation loop ────────────────────────────────────────────────────
+      
       const animate = () => {
         rafRef.current = requestAnimationFrame(animate)
         const cam      = cameraRef.current
@@ -557,7 +551,7 @@ export default function ArtGallery3D() {
         const dt  = Math.min(0.05, (now - lastTimeRef.current) / 1000)
         lastTimeRef.current = now
 
-        // ✅ Smooth look with exponential decay (no jitter)
+        
         if (modeRef.current === 'look') {
           const dx = lookDelta.current.x, dy = lookDelta.current.y
           if (dx !== 0 || dy !== 0) {
@@ -568,7 +562,7 @@ export default function ArtGallery3D() {
             poseRef.current.pitch  = Math.max(-1.3, Math.min(1.3, poseRef.current.pitch))
             lookDelta.current.x = lookDelta.current.y = 0
           } else {
-            // ✅ Keep decaying even after touch ends — smooth coast
+            
             lookVel.current.x *= 0.82
             lookVel.current.y *= 0.82
             poseRef.current.yaw   -= lookVel.current.x * LOOK_SPEED
@@ -577,7 +571,7 @@ export default function ArtGallery3D() {
           }
         }
 
-        // Walk mode — delta-time based
+        
         if (modeRef.current === 'walk') {
           let moveForward = 0, turn = 0
           if (controls.current.forward)  moveForward += 1
@@ -597,7 +591,7 @@ export default function ArtGallery3D() {
           cam.position.set(nx, PLAYER_HEIGHT, nz)
         }
 
-        // Camera direction
+       
         const yaw   = poseRef.current.yaw
         const pitch = modeRef.current === 'walk' ? 0 : poseRef.current.pitch
         cam.lookAt(
@@ -607,11 +601,11 @@ export default function ArtGallery3D() {
         )
         cam.updateMatrixWorld(true)
 
-        // ✅ Sculpture rotates every frame, particles every 2nd frame — halves overdraw
+       
         if (sculptRef.current) sculptRef.current.rotation.y += 0.008
         if (frameRef.current % 2 === 0) particles.rotation.y += 0.0008
 
-        // Avatar
+      
         const body = avatarSceneRef.current
         if (body) {
           const fX = Math.sin(poseRef.current.yaw), fZ = Math.cos(poseRef.current.yaw)
@@ -626,12 +620,12 @@ export default function ArtGallery3D() {
           tickAvatarAnimation(body, (Date.now() - avatarAnimStart.current) / 1000, controls.current.forward || controls.current.backward)
         }
 
-        // ✅ Single error drain — keep but skip inside tight loop
+       
         if (glCtx.getError) glCtx.getError()
         try { renderer.render(scene, cam) } catch {}
         glCtx.endFrameEXP()
 
-        // HUD update throttled to every 8 frames
+       
         hudThrottleRef.current++
         if (hudThrottleRef.current >= 8) {
           hudThrottleRef.current = 0
@@ -661,7 +655,7 @@ export default function ArtGallery3D() {
       buildSceneRef.current?.(gl, artworksRef.current)
   }, [])
 
-  // ─── Cleanup ──────────────────────────────────────────────────────────────
+  
   useEffect(() => () => {
     cancelAnimationFrame(rafRef.current)
     if (avatarSceneRef.current) disposeAvatarGroup(avatarSceneRef.current)
@@ -669,13 +663,13 @@ export default function ArtGallery3D() {
       avatarShadowRef.current.geometry.dispose()
       ;(avatarShadowRef.current.material as THREE.Material).dispose()
     }
-    // ✅ Dispose every geometry and material we created
+   
     ownGeosRef.current.forEach(g => g.dispose())
     ownMatsRef.current.forEach(m => m.dispose())
     rendererRef.current?.dispose()
   }, [])
 
-  // ─── Movement helpers ─────────────────────────────────────────────────────
+
   const STEP = 1.6, TURN_STEP = Math.PI / 7
 
   const teleportToArtwork = useCallback((art: Artwork) => {
@@ -717,7 +711,7 @@ export default function ArtGallery3D() {
   const stepTurnLeft  = useCallback(() => { poseRef.current.yaw += TURN_STEP }, [])
   const stepTurnRight = useCallback(() => { poseRef.current.yaw -= TURN_STEP }, [])
 
-  // ─── Render ───────────────────────────────────────────────────────────────
+ 
   return (
     <View style={S.root}>
       <GLView style={S.gl} onContextCreate={onContextCreate} />
@@ -745,7 +739,7 @@ export default function ArtGallery3D() {
         pointerEvents={mode === 'look' && !loading ? 'box-only' : 'none'}
       />
 
-      {/* ── Top bar ── */}
+    
       <View style={S.topBar} pointerEvents="box-none">
         <TouchableOpacity style={S.modeBtn} onPress={() => !loading && setMode(m => m === 'walk' ? 'look' : 'walk')}>
           <Text style={S.modeTxt}>{mode === 'walk' ? 'WALK' : 'LOOK'}</Text>
@@ -760,7 +754,7 @@ export default function ArtGallery3D() {
         </View>
       </View>
 
-      {/* ── Artwork teleport bar ── */}
+      
       {!loading && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={S.teleportBar} contentContainerStyle={S.teleportContent} pointerEvents="box-none">
           {artworks.map((art, i) => (
@@ -771,7 +765,7 @@ export default function ArtGallery3D() {
         </ScrollView>
       )}
 
-      {/* ── D-pad ── */}
+      
       {mode === 'walk' && !loading && (
         <View style={S.controls} pointerEvents="box-none">
           <View style={S.dpad}>
@@ -817,7 +811,7 @@ export default function ArtGallery3D() {
   )
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
+
 const GOLD      = '#c9a96e'
 const GLASS     = 'rgba(14,12,9,0.78)'
 const BORDER    = 'rgba(201,169,110,0.22)'

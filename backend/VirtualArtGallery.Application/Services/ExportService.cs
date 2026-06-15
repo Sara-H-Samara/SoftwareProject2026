@@ -17,13 +17,13 @@ public class ExportService
     {
         var csv = new StringBuilder();
         
-        // Header
+        
         csv.AppendLine("Virtual Art Gallery - Analytics Report");
         csv.AppendLine($"Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm}");
         csv.AppendLine($"Period: Last {months} months");
         csv.AppendLine();
         
-        // Summary Section
+       
         csv.AppendLine("SUMMARY");
         csv.AppendLine("Metric,Value");
         csv.AppendLine($"Total Artworks,{summary.TotalArtworks}");
@@ -35,7 +35,7 @@ public class ExportService
         csv.AppendLine($"Total Orders,{summary.TotalOrders}");
         csv.AppendLine();
         
-        // Sales Data Section
+        
         csv.AppendLine("SALES DATA");
         csv.AppendLine("Month,Total Sales");
         foreach (var sale in sales)
@@ -44,7 +44,7 @@ public class ExportService
         }
         csv.AppendLine();
         
-        // Interactions Data Section
+       
         csv.AppendLine("INTERACTIONS DATA");
         csv.AppendLine("Month,Likes,Comments,Views");
         foreach (var interaction in interactions)
@@ -120,7 +120,7 @@ public class ExportService
 
             column.Item().PaddingVertical(10);
 
-            // Summary Cards
+            
             column.Item().Row(row =>
             {
                 row.RelativeItem().Column(summaryCol =>
@@ -159,7 +159,7 @@ public class ExportService
 
             column.Item().PaddingVertical(15);
 
-            // Sales Chart Data
+            
             column.Item().Text("Sales Overview")
                 .FontSize(14)
                 .Bold();
@@ -187,7 +187,7 @@ public class ExportService
 
             column.Item().PaddingVertical(15);
 
-            // Interactions Data
+            
             column.Item().Text("Engagement Overview")
                 .FontSize(14)
                 .Bold();

@@ -7,7 +7,7 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// قائمة بالنقاط العامة (لا تحتاج توكن)
+
 const publicEndpoints = [
   '/api/auth/',
   '/api/artworks/search',
@@ -22,10 +22,10 @@ function isPublicEndpoint(url?: string): boolean {
   return publicEndpoints.some(endpoint => url.includes(endpoint));
 }
 
-// Request interceptor – إضافة التوكين فقط للنقاط المحمية
+
 api.interceptors.request.use(
   async (config) => {
-    // لا تضف توكين للنقاط العامة
+   
     if (isPublicEndpoint(config.url)) {
       console.log("🔓 Public endpoint, skipping token:", config.url);
       return config;
@@ -53,7 +53,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor – تجديد التوكين عند 401
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -92,7 +92,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         console.log("❌ Refresh token failed, clearing storage");
         await AsyncStorage.removeItem("auth-storage");
-        // يمكنك إرسال حدث لتسجيل الخروج
+     
       }
     }
     

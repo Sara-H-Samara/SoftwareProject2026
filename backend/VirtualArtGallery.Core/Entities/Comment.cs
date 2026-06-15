@@ -27,7 +27,7 @@ public class Comment
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
     
-    // Navigation properties
+    
     public Artwork? Artwork { get; set; }
     public Review? Review { get; set; }
     public ApplicationUser? User { get; set; }

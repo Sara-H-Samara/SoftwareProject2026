@@ -17,7 +17,7 @@ public class Follow
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
-    // Navigation properties
+    
     public ApplicationUser? Follower { get; set; }
     public ApplicationUser? Followed { get; set; }
 }

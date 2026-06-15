@@ -19,16 +19,16 @@ export function useToggleLike() {
   return useMutation({
     mutationFn: (artworkId: string) => likesApi.toggleLike(artworkId),
     onSuccess: (data, artworkId) => {
-      // Update like status cache
+      
       queryClient.setQueryData(likeKeys.artwork(artworkId), data);
       queryClient.invalidateQueries({ queryKey: likeKeys.artwork(artworkId) });
       
-      // Invalidate artist stats and gallery data
+     
       queryClient.invalidateQueries({ queryKey: ['artist-stats'] });
       queryClient.invalidateQueries({ queryKey: ['galleries'] });
       queryClient.invalidateQueries({ queryKey: ['artist-artworks'] });
       
-      // ✅ CRITICAL: invalidate analytics summary
+      
       queryClient.invalidateQueries({ queryKey: ['analytics-summary'] });
       
       Toast.show({ type: 'success', text1: data.isLiked ? 'Liked!' : 'Unliked' });

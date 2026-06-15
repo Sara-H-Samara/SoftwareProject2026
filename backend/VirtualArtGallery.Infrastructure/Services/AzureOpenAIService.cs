@@ -36,7 +36,7 @@ public class AzureOpenAIService : IAzureOpenAIService
         {
             _logger.LogInformation("Generating description for artwork: {Title}", title);
 
-            // التحقق من وجود API Key
+            
             if (string.IsNullOrEmpty(_settings.ApiKey) || 
                 _settings.ApiKey.Contains("REPLACE") || 
                 _settings.ApiKey.Contains("placeholder"))

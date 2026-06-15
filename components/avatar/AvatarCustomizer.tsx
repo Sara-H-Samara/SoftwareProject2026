@@ -45,12 +45,7 @@ const ACCESSORY_LABELS: Record<AccessoryStyle, string> = {
   mask: 'Mask',
 }
 
-/**
- * Pure controlled customization UI.
- *
- * Every interaction calls `onChange` with a partial diff. The parent owns
- * the full Avatar state so this component stays stateless and preview-ready.
- */
+
 export function AvatarCustomizer({ avatar, onChange }: Props) {
   return (
     <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>

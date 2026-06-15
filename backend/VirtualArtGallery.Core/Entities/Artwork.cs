@@ -10,7 +10,7 @@ namespace VirtualArtGallery.Core.Entities;
 public class Artwork
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-    // Navigation properties for likes and reviews
+    
 public ICollection<Like> Likes { get; set; } = new List<Like>();
 public ICollection<Review> Reviews { get; set; } = new List<Review>();
 public double AverageRating { get; set; } // computed or stored
@@ -42,12 +42,10 @@ public double AverageRating { get; set; } // computed or stored
     /// <summary>Category of the artwork.</summary>
     public ArtworkType ArtworkType { get; set; } = ArtworkType.Painting;
 
-    // ── 3D Placement Data ──────────────────────────────────────────────────────
-    // These values are used by Three.js / @react-three/fiber to place the artwork
-    // mesh inside the gallery_room.glb scene. Defaults center it in the room.
+
 
     public float PositionX { get; set; } = 0f;
-    public float PositionY { get; set; } = 1.5f; // Eye-level height
+    public float PositionY { get; set; } = 1.5f; 
     public float PositionZ { get; set; } = 0f;
 
     public float RotationX { get; set; } = 0f;
@@ -66,6 +64,6 @@ public double AverageRating { get; set; } // computed or stored
 
 public int LikesCount { get; set; }
 public int ReviewsCount { get; set; }
-    // Navigation properties
+    
     public ApplicationUser? Artist { get; set; }
 }

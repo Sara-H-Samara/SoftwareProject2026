@@ -36,12 +36,11 @@ export function ModelViewer3D({ artwork, onClose }: ModelViewer3DProps) {
   }, []);
 
   const onContextCreate = async (gl: ExpoWebGLRenderingContext) => {
-    // Patch unsupported expo-gl pixelStorei params
+  
     const originalPixelStorei = gl.pixelStorei.bind(gl);
 
     (gl as any).pixelStorei = (pname: number, param: any) => {
-      // 37440 = UNPACK_FLIP_Y_WEBGL
-      // 37441 = UNPACK_PREMULTIPLY_ALPHA_WEBGL
+      
       if (pname === 37440 || pname === 37441) return;
       originalPixelStorei(pname, param);
     };
@@ -74,7 +73,7 @@ export function ModelViewer3D({ artwork, onClose }: ModelViewer3DProps) {
     const group = new THREE.Group();
     scene.add(group);
 
-    // Back board
+   
     const board = new THREE.Mesh(
       new THREE.BoxGeometry(2.35, 2.65, 0.08),
       new THREE.MeshStandardMaterial({
@@ -86,7 +85,7 @@ export function ModelViewer3D({ artwork, onClose }: ModelViewer3DProps) {
     board.position.z = -0.04;
     group.add(board);
 
-    // White mat behind artwork
+    
     const matBoard = new THREE.Mesh(
       new THREE.BoxGeometry(2.15, 2.45, 0.04),
       new THREE.MeshStandardMaterial({

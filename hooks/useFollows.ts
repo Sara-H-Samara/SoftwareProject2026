@@ -15,14 +15,14 @@ export const statsKeys = {
   artist: (artistId: string) => ['artist-stats', artistId] as const,
 }
 
-// ── Queries ───────────────────────────────────────────────────────────────────
+
 
 export function useFollowStatus(artistId: string) {
   return useQuery({
     queryKey: followKeys.artist(artistId),
     queryFn: () => followsApi.getFollowStatus(artistId),
     enabled: Boolean(artistId),
-    staleTime: 0, // Always refetch when invalidated
+    staleTime: 0, 
   })
 }
 
@@ -42,7 +42,7 @@ export function useFollowing(userId: string, page: number = 1, pageSize: number 
   })
 }
 
-// ── Artist Stats ──────────────────────────────────────────────────────────────
+
 
 export function useArtistStats(artistId: string) {
   return useQuery({
@@ -52,11 +52,11 @@ export function useArtistStats(artistId: string) {
       return response.data
     },
     enabled: Boolean(artistId),
-    staleTime: 0, // Always refetch when invalidated
+    staleTime: 0, 
   })
 }
 
-// ── Mutations ─────────────────────────────────────────────────────────────────
+
 
 export function useToggleFollow() {
   const queryClient = useQueryClient()
@@ -64,13 +64,13 @@ export function useToggleFollow() {
   return useMutation({
     mutationFn: (artistId: string) => followsApi.toggleFollow(artistId),
     onSuccess: (data, artistId) => {
-      // Update the cache immediately
+     
       queryClient.setQueryData(followKeys.artist(artistId), data)
       
-      // Invalidate artist stats since follower count changed
+      
       queryClient.invalidateQueries({ queryKey: statsKeys.artist(artistId) })
       
-      // Invalidate followers/following lists
+      
       queryClient.invalidateQueries({ queryKey: followKeys.followers(artistId) })
       
       Toast.show({ type: 'success', text1: data.isFollowing ? '✅ Following!' : '👋 Unfollowed' })

@@ -17,7 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 const { width, height } = Dimensions.get("window");
 
 const API_BASE =
-  process.env.EXPO_PUBLIC_API_URL ?? "http://192.168.1.184:5005";
+  process.env.EXPO_PUBLIC_API_URL ?? "http://172.23.37.34:5005";
 
 interface ARViewProps {
   artwork: {
@@ -164,7 +164,7 @@ export function ARView({ artwork, onClose }: ARViewProps) {
             transform: [{ translateX }, { translateY }],
           }}
         >
-          {/* الظل خلف الإطار */}
+        
           <View
             style={{
               position: "absolute",
@@ -177,7 +177,7 @@ export function ARView({ artwork, onClose }: ARViewProps) {
             }}
           />
 
-          {/* الإطار الخارجي الذهبي */}
+          
           <View
             style={{
               position: "absolute",
@@ -195,7 +195,7 @@ export function ARView({ artwork, onClose }: ARViewProps) {
             }}
           />
 
-          {/* الحافة البيضاء الداخلية (المات) */}
+          
           <View
             style={{
               position: "absolute",
@@ -208,7 +208,7 @@ export function ARView({ artwork, onClose }: ARViewProps) {
             }}
           />
 
-          {/* منطقة الصورة */}
+         
           <View
             style={{
               position: "absolute",

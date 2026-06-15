@@ -12,7 +12,7 @@ import { ARTWORK_TYPES } from "@/utils/constants";
 
 export default function UploadArtworkPage() {
   const router = useRouter();
-  const { edit } = useLocalSearchParams<{ edit?: string }>(); // ✅ قراءة معامل edit
+  const { edit } = useLocalSearchParams<{ edit?: string }>(); 
   const isEditMode = !!edit;
   
   const { clearAuth } = useAuthStore();
@@ -30,7 +30,7 @@ export default function UploadArtworkPage() {
   const [image, setImage] = useState<any>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  // ✅ تحميل بيانات العمل الفني في وضع التعديل
+  
   useEffect(() => {
     if (isEditMode && existingArtwork) {
       setTitle(existingArtwork.title);
@@ -41,7 +41,7 @@ export default function UploadArtworkPage() {
       setYear(existingArtwork.year?.toString() || "");
       setPrice(existingArtwork.price?.toString() || "");
       setImagePreview(existingArtwork.imageUrl);
-      // لا نضع image لأن المستخدم قد يغير الصورة
+     
     }
   }, [isEditMode, existingArtwork]);
 
@@ -78,7 +78,7 @@ export default function UploadArtworkPage() {
     };
 
     if (isEditMode && edit) {
-      // ✅ تحديث العمل الفني الحالي
+      
       updateArtwork(
         { id: edit, data: payload },
         {
@@ -94,7 +94,7 @@ export default function UploadArtworkPage() {
         }
       );
     } else if (image) {
-      // ✅ رفع عمل فني جديد
+    
       createArtwork(
         { data: payload, imageFile: image },
         {

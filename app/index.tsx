@@ -9,7 +9,7 @@ import { FeaturedArtists } from "@/components/featured/FeaturedArtists";
 import { RecentlyViewed } from "@/components/recently/RecentlyViewed";
 import { Ionicons } from "@expo/vector-icons";
 
-// Feature cards data (مطابقة للويب)
+
 const features = [
   {
     icon: "cube-outline",

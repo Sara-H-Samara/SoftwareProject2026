@@ -86,7 +86,7 @@ public class OrderService
         return Result<OrderDto>.Success(await MapToDto(order));
     }
 
-    // ✅ أضف هذه الدالة الجديدة - تستخدم في webhook لمنع التكرار
+    
     public async Task<OrderDto?> GetOrderBySessionIdAsync(string stripeSessionId)
     {
         var order = await _context.Orders
@@ -101,7 +101,7 @@ public class OrderService
 
     private async Task<OrderDto> MapToDto(Order order)
     {
-        // تأكد من تحميل Items إذا لم تكن محملة مسبقاً
+       
         if (order.Items == null || !order.Items.Any())
         {
             await _context.Entry(order)

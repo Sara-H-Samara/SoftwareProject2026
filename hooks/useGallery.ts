@@ -1,7 +1,7 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
 import { galleriesApi } from '@/api/galleries.api'
 
-// ── Query Keys ────────────────────────────────────────────────────────────────
+
 export const galleryKeys = {
   all: ['galleries'] as const,
   list: (page: number, pageSize: number) => [...galleryKeys.all, 'list', page, pageSize] as const,
@@ -12,9 +12,7 @@ export const galleryKeys = {
   artistArtworks: (artistId: string) => [...galleryKeys.all, 'artist', artistId, 'artworks'] as const,
 }
 
-// ── Queries ───────────────────────────────────────────────────────────────────
 
-/** Paginated gallery browse page. */
 export function useGalleries(page = 1, pageSize = 12) {
   return useQuery({
     queryKey: galleryKeys.list(page, pageSize),
@@ -24,7 +22,7 @@ export function useGalleries(page = 1, pageSize = 12) {
   })
 }
 
-/** Infinite scroll galleries */
+
 export function useInfiniteGalleries(pageSize = 12) {
   return useInfiniteQuery({
     queryKey: galleryKeys.infinite(pageSize),
@@ -42,7 +40,7 @@ export function useInfiniteGalleries(pageSize = 12) {
   })
 }
 
-/** Search galleries by keyword. */
+
 export function useSearchGalleries(q: string, page = 1) {
   return useQuery({
     queryKey: galleryKeys.search(q, page),
@@ -52,7 +50,7 @@ export function useSearchGalleries(q: string, page = 1) {
   })
 }
 
-/** Infinite scroll search galleries */
+
 export function useInfiniteSearchGalleries(q: string, pageSize = 12) {
   return useInfiniteQuery({
     queryKey: galleryKeys.searchInfinite(q, pageSize),
@@ -71,7 +69,7 @@ export function useInfiniteSearchGalleries(q: string, pageSize = 12) {
   })
 }
 
-/** Single artist gallery info (profile + stats). */
+
 export function useArtistGallery(artistId: string) {
   return useQuery({
     queryKey: galleryKeys.artist(artistId),
@@ -81,11 +79,7 @@ export function useArtistGallery(artistId: string) {
   })
 }
 
-/**
- * All published artworks for an artist — this is the payload loaded into
- * the Three.js scene. Includes full 3D placement data.
- * Cached aggressively since 3D scenes are expensive to initialise.
- */
+
 export function useArtistArtworks(artistId: string) {
   return useQuery({
     queryKey: galleryKeys.artistArtworks(artistId),

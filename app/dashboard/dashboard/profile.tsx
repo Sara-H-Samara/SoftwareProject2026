@@ -65,7 +65,7 @@ export default function ProfilePage() {
 
   return (
     <ScrollView className="flex-1 bg-stone-50 p-4">
-      {/* بطاقة البروفايل */}
+      
       <View className="bg-white rounded-2xl p-6 border border-stone-100 mb-6">
         <View className="items-center">
           <TouchableOpacity onPress={pickImage} disabled={isUploadingPic}>
@@ -114,7 +114,7 @@ export default function ProfilePage() {
         )}
       </View>
 
-      {/* الإحصائيات */}
+      
       {stats && (
         <View className="flex-row gap-4 mb-4">
           <StatCard value={stats.totalArtworks} label="Artworks" icon="images-outline" />
@@ -124,7 +124,7 @@ export default function ProfilePage() {
         </View>
       )}
 
-      {/* معلومات الحساب */}
+      
       <View className="bg-white rounded-2xl p-4 border border-stone-100 mb-6">
         <Text className="font-semibold text-stone-800 mb-3">Account Information</Text>
         <InfoRow label="Email" value={user?.email ?? "—"} />
@@ -132,7 +132,7 @@ export default function ProfilePage() {
         <InfoRow label="Member Since" value={user?.createdAt ? formatDate(user.createdAt) : "—"} />
       </View>
 
-      {/* زر تسجيل الخروج */}
+      
       <TouchableOpacity
         onPress={handleSignOut}
         className="bg-red-500 py-4 rounded-xl items-center justify-center flex-row mb-8"

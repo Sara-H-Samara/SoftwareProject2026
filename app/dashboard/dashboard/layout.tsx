@@ -15,7 +15,7 @@ import { PageLoader } from "@/components/common/Spinner";
 import { Ionicons } from "@expo/vector-icons";
 import type { Artwork, UpdateArtworkPositionRequest } from "@/types";
 
-// تعريف مواقع الجدران كما في الويب
+
 const WALL_POSITIONS = [
   { id: "front-1", label: "Front Left", positionX: -3, positionY: 1.6, positionZ: 9.8, gridX: 30, gridY: 20 },
   { id: "front-2", label: "Front Center", positionX: 0, positionY: 1.6, positionZ: 9.8, gridX: 50, gridY: 20 },
@@ -41,7 +41,7 @@ export default function GalleryLayoutEditorPage() {
   const [positions, setPositions] = useState<Map<string, UpdateArtworkPositionRequest>>(new Map());
   const [selectedArtworkId, setSelectedArtworkId] = useState<string | null>(null);
 
-  // التوجيه إلى تسجيل الدخول إذا لم يكن مصادقاً
+  
   useEffect(() => {
     if (!isAuthenticated) {
       router.replace("/auth/login");
@@ -53,10 +53,10 @@ export default function GalleryLayoutEditorPage() {
     return local ? { ...aw, ...local } : aw;
   });
 
-  // ✅ إصلاح النوع الضمني لـ 'any' عبر تحديد النوع صراحةً
+  
   const publishedArtworks = resolvedArtworks.filter((a: Artwork) => a.isPublished);
 
-  // معالج وضع عمل على حائط
+  
   const handlePlaceOnWall = (wallPosition: typeof WALL_POSITIONS[0]) => {
     if (!selectedArtworkId) {
       Alert.alert("Select Artwork", "Please tap an artwork from the list first.");
@@ -100,10 +100,10 @@ export default function GalleryLayoutEditorPage() {
       ...current,
     };
     setPositions((prev) => new Map(prev).set(selectedArtworkId, merged));
-    setSelectedArtworkId(null); // إلغاء التحديد بعد الوضع
+    setSelectedArtworkId(null); 
   };
 
-  // إزالة عمل من الحائط
+  
   const removeFromWall = (artworkId: string) => {
     setPositions((prev) => {
       const newMap = new Map(prev);
@@ -112,7 +112,7 @@ export default function GalleryLayoutEditorPage() {
     });
   };
 
-  // حفظ التخطيط
+  
   const handleSave = () => {
     const updatedPositions = Array.from(positions.values());
     if (updatedPositions.length === 0) {
@@ -130,7 +130,7 @@ export default function GalleryLayoutEditorPage() {
     });
   };
 
-  // مسح كل المواقع
+  
   const clearAll = () => {
     if (positions.size === 0) return;
     Alert.alert("Clear All", "Clear all positions?", [
@@ -143,7 +143,7 @@ export default function GalleryLayoutEditorPage() {
     ]);
   };
 
-  // الانتقال إلى المعاينة الثلاثية الأبعاد
+ 
   const preview3D = () => {
     if (user?.id) {
       router.push(`/galleries/${user.id}/3d`);
@@ -188,7 +188,7 @@ export default function GalleryLayoutEditorPage() {
 
       {viewMode === "2d" ? (
         <View className="flex-1 flex-row">
-          {/* قائمة الأعمال (اللوحات الفنية) */}
+         
           <View className="w-1/3 bg-white border-r border-stone-100 p-2">
             <Text className="text-xs font-semibold text-stone-500 mb-2 uppercase">Your Artworks</Text>
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -210,7 +210,7 @@ export default function GalleryLayoutEditorPage() {
                           : "border-stone-200 bg-white"
                       }`}
                     >
-                      {/* ✅ استخدام رابط الصورة مباشرة بدون دالة getImageUrl */}
+                     
                       <Image
                         source={{ uri: aw.imageUrl }}
                         className="w-full h-20 rounded-lg mb-1"
@@ -229,10 +229,10 @@ export default function GalleryLayoutEditorPage() {
             </ScrollView>
           </View>
 
-          {/* خريطة الغرفة ثنائية الأبعاد */}
+         
           <View className="flex-1 p-2">
             <View className="flex-1 bg-stone-100 rounded-xl border border-stone-300 relative">
-              {/* تسميات الجدران */}
+             
               <View className="absolute top-2 left-1/2 -translate-x-1/2 bg-white/80 px-2 py-1 rounded-full">
                 <Text className="text-[10px] font-medium text-stone-600">FRONT WALL</Text>
               </View>
@@ -246,7 +246,7 @@ export default function GalleryLayoutEditorPage() {
                 <Text className="text-[10px] font-medium text-stone-600">RIGHT</Text>
               </View>
 
-              {/* نقاط الجدران */}
+             
               {WALL_POSITIONS.map((pos) => {
                 const artwork = publishedArtworks.find(
                   (aw: Artwork) => aw.positionX === pos.positionX && aw.positionZ === pos.positionZ
@@ -289,7 +289,7 @@ export default function GalleryLayoutEditorPage() {
                 );
               })}
 
-              {/* مركز الغرفة */}
+             
               <View className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/90 px-3 py-1 rounded-full border border-stone-200">
                 <Text className="text-[10px] text-stone-400">Center</Text>
               </View>
@@ -297,7 +297,7 @@ export default function GalleryLayoutEditorPage() {
           </View>
         </View>
       ) : (
-        // وضع 3D: نعرض رسالة مع زر للانتقال إلى المعرض الافتراضي
+       
         <View className="flex-1 bg-white items-center justify-center p-6">
           <Ionicons name="cube-outline" size={64} color="#8b5cf6" />
           <Text className="text-lg font-semibold text-stone-800 mt-4">3D Preview</Text>

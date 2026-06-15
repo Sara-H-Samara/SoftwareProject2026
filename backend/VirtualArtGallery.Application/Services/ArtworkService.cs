@@ -35,7 +35,7 @@ public ArtworkService(
     _notificationService = notificationService;
 }
 
-    // ── Read ───────────────────────────────────────────────────────────────────
+    
 
     /// <summary>Returns all artworks owned by an artist (published + drafts).</summary>
     public async Task<Result<List<ArtworkDto>>> GetMyArtworksAsync(string artistId)
@@ -74,14 +74,14 @@ public ArtworkService(
         if (artwork == null)
             return Result<ArtworkDto>.NotFound("Artwork not found.");
 
-        // Only owner can see unpublished artworks
+       
         if (!artwork.IsPublished && artwork.ArtistId != requestingUserId)
             return Result<ArtworkDto>.Forbidden("This artwork is not published.");
 
         return Result<ArtworkDto>.Success(MapToDto(artwork));
     }
 
-    // ── Search with Filters ────────────────────────────────────────────────────
+    
 
     /// <summary>
     /// Search published artworks with full filtering and sorting.
@@ -103,7 +103,7 @@ public ArtworkService(
             .Where(a => a.IsPublished)
             .AsQueryable();
 
-        // --- Text search ---
+       
         if (!string.IsNullOrWhiteSpace(query))
         {
             var lowerQuery = query.ToLower();
@@ -114,17 +114,17 @@ public ArtworkService(
             );
         }
 
-        // --- Price range ---
+        
         if (minPrice.HasValue)
             queryable = queryable.Where(a => a.Price >= minPrice.Value);
         if (maxPrice.HasValue)
             queryable = queryable.Where(a => a.Price <= maxPrice.Value);
 
-        // --- Artwork type ---
+        
         if (!string.IsNullOrWhiteSpace(artworkType) && Enum.TryParse<ArtworkType>(artworkType, true, out var type))
             queryable = queryable.Where(a => a.ArtworkType == type);
 
-        // --- Sorting ---
+        
         queryable = sortBy?.ToLower() switch
         {
             "oldest" => queryable.OrderBy(a => a.CreatedAt),
@@ -154,19 +154,19 @@ public ArtworkService(
         return Result<SearchResultDto<ArtworkDto>>.Success(result);
     }
 
-    // ── Create ─────────────────────────────────────────────────────────────────
+    
 
     public async Task<Result<ArtworkDto>> CreateAsync(
         string artistId,
         CreateArtworkRequestDto dto,
         IFormFile imageFile)
     {
-        // Validate file
+        
         var fileValidation = ValidateImageFile(imageFile);
         if (!fileValidation.IsSuccess)
             return Result<ArtworkDto>.Failure(fileValidation.Error!);
 
-        // Upload image to Azure Blob Storage
+        
         string imageUrl;
         try
         {
@@ -218,10 +218,10 @@ _logger.LogInformation(
     artwork.IsPublished
 );
 
-// Reload to include navigation Artist name
+
 await _db.Entry(artwork).Reference(a => a.Artist).LoadAsync();
 
-// ✅ Notify followers only if artwork is published
+
 if (artwork.IsPublished)
 {
     var artistName = artwork.Artist?.DisplayName ?? artwork.Artist?.Email ?? "An artist";
@@ -248,7 +248,7 @@ if (artwork.IsPublished)
 return Result<ArtworkDto>.Success(MapToDto(artwork));
     }
 
-    // ── Update ─────────────────────────────────────────────────────────────────
+    
 
     /// <summary>Partial update (PATCH). Only updates fields that are provided (non-null).</summary>
     public async Task<Result<ArtworkDto>> UpdateAsync(
@@ -267,7 +267,7 @@ return Result<ArtworkDto>.Success(MapToDto(artwork));
             return Result<ArtworkDto>.Forbidden("You do not own this artwork.");
             var wasPublished = artwork.IsPublished;
 
-        // Apply only the fields that were provided
+       
         if (dto.Title != null) artwork.Title = dto.Title;
         if (dto.Description != null) artwork.Description = dto.Description;
         if (dto.Dimensions != null) artwork.Dimensions = dto.Dimensions;
@@ -277,7 +277,7 @@ return Result<ArtworkDto>.Success(MapToDto(artwork));
         if (dto.ArtworkType.HasValue) artwork.ArtworkType = dto.ArtworkType.Value;
         if (dto.IsPublished.HasValue) artwork.IsPublished = dto.IsPublished.Value;
 
-        // 3D placement data
+        
         if (dto.PositionX.HasValue) artwork.PositionX = dto.PositionX.Value;
         if (dto.PositionY.HasValue) artwork.PositionY = dto.PositionY.Value;
         if (dto.PositionZ.HasValue) artwork.PositionZ = dto.PositionZ.Value;
@@ -329,7 +329,7 @@ return Result<ArtworkDto>.Success(MapToDto(artwork));
             .Where(a => ids.Contains(a.Id) && a.ArtistId == artistId)
             .ToListAsync();
 
-        // Verify all artworks belong to this artist
+       
         if (artworks.Count != positions.Count)
             return Result.Failure("One or more artworks not found or not owned by you.");
 
@@ -365,10 +365,10 @@ return Result<ArtworkDto>.Success(MapToDto(artwork));
         var fileValidation = ValidateImageFile(newImage);
         if (!fileValidation.IsSuccess) return Result<ArtworkDto>.Failure(fileValidation.Error!);
 
-        // Delete old image
+       
         await _storage.DeleteFileAsync(artwork.ImageUrl, AppConstants.BlobContainers.ArtworkImages);
 
-        // Upload replacement
+       
         await using var stream = newImage.OpenReadStream();
         artwork.ImageUrl = await _storage.UploadFileAsync(
             stream, newImage.FileName, newImage.ContentType, AppConstants.BlobContainers.ArtworkImages);
@@ -378,7 +378,7 @@ return Result<ArtworkDto>.Success(MapToDto(artwork));
         return Result<ArtworkDto>.Success(MapToDto(artwork));
     }
 
-    // ── Delete ─────────────────────────────────────────────────────────────────
+    
 
     public async Task<Result> DeleteAsync(Guid id, string artistId)
     {
@@ -387,7 +387,7 @@ return Result<ArtworkDto>.Success(MapToDto(artwork));
         if (artwork == null) return Result.NotFound("Artwork not found.");
         if (artwork.ArtistId != artistId) return Result.Failure("You do not own this artwork.", 403);
 
-        // Delete blob first to avoid orphaned files
+        
         await _storage.DeleteFileAsync(artwork.ImageUrl, AppConstants.BlobContainers.ArtworkImages);
 
         _db.Artworks.Remove(artwork);
@@ -418,7 +418,7 @@ return Result<ArtworkDto>.Success(MapToDto(artwork));
     var totalFollowers = await _db.Follows
         .CountAsync(f => f.FollowedId == artistId);
 
-    // مؤقتًا إذا ما بدك تدخل orders الآن
+   
     var totalOrders = 0;
     var totalSales = 0m;
 
@@ -436,7 +436,7 @@ return Result<ArtworkDto>.Success(MapToDto(artwork));
     return Result<AnalyticsSummaryDto>.Success(dto);
 }
 
-    // ── Private Helpers ────────────────────────────────────────────────────────
+    
 
     private static Result ValidateImageFile(IFormFile file)
     {

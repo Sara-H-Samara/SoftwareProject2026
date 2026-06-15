@@ -36,7 +36,7 @@ public class Notification
     /// <summary>When the notification was created</summary>
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
-    // Navigation properties
+    
     public ApplicationUser? User { get; set; }
     public ApplicationUser? TriggeredByUser { get; set; }
 }

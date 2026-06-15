@@ -10,7 +10,7 @@ namespace VirtualArtGallery.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class ReviewsController : BaseApiController  // يرث من BaseApiController
+public class ReviewsController : BaseApiController  
 {
     private readonly ReviewService _reviewService;
 
@@ -24,9 +24,9 @@ public class ReviewsController : BaseApiController  // يرث من BaseApiContro
     [HttpPost]
     public async Task<IActionResult> CreateReview([FromBody] CreateReviewRequestDto dto)
     {
-        var userId = RequireCurrentUserId();  // استخدام الدالة الموجودة
+        var userId = RequireCurrentUserId();  
         var result = await _reviewService.CreateReviewAsync(userId, dto);
-        return ToActionResult(result);  // استخدام ToActionResult بدل HandleResult
+        return ToActionResult(result);  
     }
     
     [HttpPut("{reviewId}")]
@@ -53,7 +53,7 @@ public class ReviewsController : BaseApiController  // يرث من BaseApiContro
         return ToActionResult(result);
     }
     
-    // ── Comments ───────────────────────────────────────────────────────────────
+    
     
     [HttpPost("comments")]
     public async Task<IActionResult> CreateComment([FromBody] CreateCommentRequestDto dto)
@@ -71,7 +71,7 @@ public class ReviewsController : BaseApiController  // يرث من BaseApiContro
         return ToActionResult(result);
     }
     
-    // ── Likes ──────────────────────────────────────────────────────────────────
+    
     
     [HttpPost("artwork/{artworkId}/like")]
     public async Task<IActionResult> ToggleLike(Guid artworkId)
@@ -85,7 +85,7 @@ public class ReviewsController : BaseApiController  // يرث من BaseApiContro
     [AllowAnonymous]
     public async Task<IActionResult> GetLikeStatus(Guid artworkId)
     {
-        var userId = GetCurrentUserId();  // استخدام GetCurrentUserId (قد يكون null)
+        var userId = GetCurrentUserId();  
         if (userId == null)
         {
             var likesCount = await GetLikesCount(artworkId);
@@ -98,12 +98,12 @@ public class ReviewsController : BaseApiController  // يرث من BaseApiContro
     
     private async Task<int> GetLikesCount(Guid artworkId)
     {
-        // محاولة جلب عدد الإعجابات بدون مستخدم
+        
         var result = await _reviewService.GetLikeStatusAsync("", artworkId);
         return result.IsSuccess && result.Value != null ? result.Value.LikesCount : 0;
     }
     
-    // ── Follows ────────────────────────────────────────────────────────────────
+    
     
     [HttpPost("follow/{artistId}")]
     public async Task<IActionResult> ToggleFollow(string artistId)
@@ -148,7 +148,7 @@ public class ReviewsController : BaseApiController  // يرث من BaseApiContro
         return ToActionResult(result);
     }
     
-    // ── Analytics ──────────────────────────────────────────────────────────────
+    
     
     [HttpGet("artist/{artistId}/stats")]
     [AllowAnonymous]

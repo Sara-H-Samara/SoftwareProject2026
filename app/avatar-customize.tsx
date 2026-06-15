@@ -15,13 +15,7 @@ function cloneDefaultAvatar(): Avatar {
   return { ...DEFAULT_AVATAR }
 }
 
-/**
- * Avatar customization screen.
- *
- * Loads the user's avatar from /api/avatars/me. Local state mirrors the
- * server copy for instant 3D preview updates. Falls back to DEFAULT_AVATAR
- * on API failure or a 10 s watchdog so the screen never spins forever.
- */
+
 export default function AvatarCustomizeScreen() {
   const router = useRouter()
   const { next } = useLocalSearchParams<{ next?: string }>()
@@ -32,21 +26,21 @@ export default function AvatarCustomizeScreen() {
   const [local, setLocal] = useState<Avatar | null>(null)
   const [usingFallback, setUsingFallback] = useState(false)
 
-  // Sync from server when available — overrides any temporary fallback.
+ 
   useEffect(() => {
     if (!serverAvatar) return
     setLocal(serverAvatar)
     setUsingFallback(false)
   }, [serverAvatar])
 
-  // Immediate fallback on query error.
+ 
   useEffect(() => {
     if (!isError || local) return
     setLocal(cloneDefaultAvatar())
     setUsingFallback(true)
   }, [isError, local])
 
-  // 10 s watchdog — never leave the user on an infinite loader.
+ 
   useEffect(() => {
     if (local) return
 
@@ -91,7 +85,7 @@ export default function AvatarCustomizeScreen() {
       if (next) router.replace(next as any)
       else router.back()
     } catch {
-      /* error already toasted by the hook */
+      
     }
   }
 

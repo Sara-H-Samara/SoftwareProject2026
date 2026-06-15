@@ -23,7 +23,7 @@ public class StripeService
 
     public async Task<Result<Session>> CreateCheckoutSessionAsync(
         string userId,
-        List<CartItemDto> items,  // ← استخدم CartItemDto من DTOs.Orders
+        List<CartItemDto> items, 
         string successUrl,
         string cancelUrl)
     {

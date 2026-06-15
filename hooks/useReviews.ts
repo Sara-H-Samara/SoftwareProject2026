@@ -24,7 +24,7 @@ export function useCreateReview() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: reviewKeys.artwork(variables.artworkId) })
       queryClient.invalidateQueries({ queryKey: ['artist-stats'] })
-      // ✅ CRITICAL: invalidate analytics summary
+      
       queryClient.invalidateQueries({ queryKey: ['analytics-summary'] })
       Toast.show({ type: 'success', text1: '✨ Review submitted successfully!' })
     },
@@ -58,7 +58,7 @@ export function useDeleteReview() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: reviewKeys.all })
       queryClient.invalidateQueries({ queryKey: ['artist-stats'] })
-      // ✅ invalidate analytics summary
+     
       queryClient.invalidateQueries({ queryKey: ['analytics-summary'] })
       Toast.show({ type: 'success', text1: 'Review deleted' });
     },

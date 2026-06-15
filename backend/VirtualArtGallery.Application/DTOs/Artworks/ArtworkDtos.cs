@@ -2,7 +2,7 @@ using VirtualArtGallery.Core.Enums;
 
 namespace VirtualArtGallery.Application.DTOs.Artworks;
 
-// ── Request DTOs ───────────────────────────────────────────────────────────────
+
 
 /// <summary>
 /// Used when an artist creates a new artwork.
@@ -16,7 +16,7 @@ public record CreateArtworkRequestDto(
     int? Year,
     decimal? Price,
     ArtworkType ArtworkType,
-    // 3D placement — optional, defaults to center of room
+    
     float PositionX = 0f,
     float PositionY = 1.5f,
     float PositionZ = 0f,
@@ -64,7 +64,7 @@ public record UpdateArtworkPositionDto(
     float ScaleZ
 );
 
-// ── Response DTOs ──────────────────────────────────────────────────────────────
+
 
 public record ArtworkDto(
     Guid Id,

@@ -36,10 +36,10 @@ public class AzureBlobStorageService : ICloudStorageService
     {
         var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
 
-        // Ensure container exists (idempotent)
+       
         await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
 
-        // Append a timestamp to avoid name collisions
+       
         var uniqueFileName = $"{Path.GetFileNameWithoutExtension(fileName)}_{DateTime.UtcNow.Ticks}{Path.GetExtension(fileName)}";
         var blobClient = containerClient.GetBlobClient(uniqueFileName);
 
@@ -56,7 +56,7 @@ public class AzureBlobStorageService : ICloudStorageService
     /// <inheritdoc />
     public async Task DeleteFileAsync(string fileUrl, string containerName)
     {
-        // Extract the blob name from the full URL
+        
         var uri = new Uri(fileUrl);
         var blobName = uri.Segments.Last();
 
@@ -69,8 +69,7 @@ public class AzureBlobStorageService : ICloudStorageService
     /// <inheritdoc />
     public Task<string> GetSecureUrlAsync(string blobName, string containerName, int expiryMinutes = 60)
     {
-        // TODO: Implement SAS token generation for private blobs if needed.
-        // For now, blobs are publicly accessible so we return the direct URL.
+        
         var url = $"{_settings.BaseUrl}/{containerName}/{blobName}";
         return Task.FromResult(url);
     }

@@ -29,7 +29,7 @@ public class NotificationService
         string? entityTitle,
         string message)
     {
-        // Don't notify yourself
+       
         if (triggeredByUserId == userId)
             return Result<NotificationDto>.Failure("Cannot notify yourself");
 
@@ -49,7 +49,7 @@ public class NotificationService
         _context.Notifications.Add(notification);
         await _context.SaveChangesAsync();
 
-        // Send email notification if enabled
+       
         await SendEmailIfEnabled(
     userId,
     type,
@@ -68,7 +68,7 @@ private async Task SendEmailIfEnabled(string userId, string type, string message
 {
     try
     {
-        // Get user notification settings
+        
         var settings = await _context.UserNotificationSettings
             .FirstOrDefaultAsync(s => s.UserId == userId);
 
@@ -89,7 +89,7 @@ private async Task SendEmailIfEnabled(string userId, string type, string message
         var user = await _context.Users.FindAsync(userId);
         if (user == null || string.IsNullOrEmpty(user.Email)) return;
 
-        // ✅ التصحيح هنا: استخدم `type` و `message` بدلاً من `notification`
+       
         var subject = $"New {type} notification";
         var body = $@"
             <h2>Hello {user.DisplayName},</h2>

@@ -14,7 +14,7 @@ export const searchApi = {
     if (filters.pageSize) params.append('pageSize', filters.pageSize.toString());
     
     const url = `/api/artworks/search?${params.toString()}`;
-    console.log('🔍 Search URL:', url);  // للتأكد من المعاملات
+    console.log('🔍 Search URL:', url);  
     return api.get<SearchResult<Artwork>>(url).then(r => r.data);
   },
   

@@ -42,7 +42,7 @@ public class BadgeService
             newBadges.Add("verified");
         }
 
-        // Check for Top Artist badge (top 10% by followers)
+      
         if (!existingBadges.Contains("top"))
         {
             var totalFollowers = await _context.Follows.CountAsync(f => f.FollowedId == userId);
@@ -60,7 +60,7 @@ public class BadgeService
             }
         }
 
-        // Check for Rising Star badge (new artist with high engagement)
+        
         if (!existingBadges.Contains("rising") && user.CreatedAt > DateTime.UtcNow.AddMonths(-1))
         {
             var artworks = await _context.Artworks
@@ -76,7 +76,7 @@ public class BadgeService
             }
         }
 
-        // Check for Popular badge (total likes > 100)
+        
         if (!existingBadges.Contains("popular"))
         {
             var artworks = await _context.Artworks
@@ -90,7 +90,7 @@ public class BadgeService
             }
         }
 
-        // Check for Master badge (average rating > 4.5 and > 10 reviews)
+       
         if (!existingBadges.Contains("master"))
         {
             var artworks = await _context.Artworks
@@ -110,7 +110,7 @@ public class BadgeService
             }
         }
 
-        // Award new badges
+       
         foreach (var badgeType in newBadges)
         {
             _context.UserBadges.Add(new UserBadge

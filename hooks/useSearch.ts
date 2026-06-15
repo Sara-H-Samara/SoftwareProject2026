@@ -11,7 +11,7 @@ export const searchKeys = {
   popular: () => [...searchKeys.all, 'popular'] as const,
 };
 
-// ── Search Results ────────────────────────────────────────────────────────────
+
 
 export function useSearch(filters: SearchFilters) {
   return useQuery({
@@ -22,7 +22,7 @@ export function useSearch(filters: SearchFilters) {
   });
 }
 
-// ── Infinite Scroll Search ───────────────────────────────────────────────────
+
 
 export function useInfiniteSearch(filters: Omit<SearchFilters, 'page'>) {
   const pageSize = filters.pageSize || 12;
@@ -39,7 +39,7 @@ export function useInfiniteSearch(filters: Omit<SearchFilters, 'page'>) {
   });
 }
 
-// ── Search Suggestions ────────────────────────────────────────────────────────
+
 
 export function useSearchSuggestions(query: string) {
   const debouncedQuery = useDebounce(query, 300);
@@ -60,7 +60,7 @@ export function usePopularSearches() {
   });
 }
 
-// ── Debounce Hook ────────────────────────────────────────────────────────────
+
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);

@@ -43,7 +43,7 @@ export function FilterSidebar({ filters, onFilterChange }: FilterSidebarProps) {
 
   return (
     <View>
-      {/* Header */}
+      
       <View className="flex-row justify-between items-center mb-4">
         <Text className="text-lg font-semibold text-stone-800">Filters</Text>
         {hasActiveFilters && (
@@ -53,7 +53,7 @@ export function FilterSidebar({ filters, onFilterChange }: FilterSidebarProps) {
         )}
       </View>
 
-      {/* Sort By */}
+     
       <TouchableOpacity
         onPress={() => setShowSort(!showSort)}
         className="flex-row justify-between items-center py-3 border-t border-stone-100"
@@ -82,7 +82,7 @@ export function FilterSidebar({ filters, onFilterChange }: FilterSidebarProps) {
         </View>
       )}
 
-      {/* Price Range */}
+      
       <TouchableOpacity
         onPress={() => setShowPrice(!showPrice)}
         className="flex-row justify-between items-center py-3 border-t border-stone-100"
@@ -111,7 +111,7 @@ export function FilterSidebar({ filters, onFilterChange }: FilterSidebarProps) {
         </View>
       )}
 
-      {/* Artwork Type */}
+      
       <TouchableOpacity
         onPress={() => setShowType(!showType)}
         className="flex-row justify-between items-center py-3 border-t border-stone-100"

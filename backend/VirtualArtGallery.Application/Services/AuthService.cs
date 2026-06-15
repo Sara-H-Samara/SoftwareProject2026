@@ -50,11 +50,11 @@ public class AuthService
         _configuration = configuration; 
     }
 
-    // ── Registration ───────────────────────────────────────────────────────────
+   
 
     public async Task<Result<AuthResponseDto>> RegisterAsync(RegisterRequestDto dto)
     {
-        // Check if email already exists
+        
         var existingUser = await _userManager.FindByEmailAsync(dto.Email);
         if (existingUser != null)
             return Result<AuthResponseDto>.Failure("An account with this email already exists.");
@@ -79,22 +79,17 @@ public class AuthService
             return Result<AuthResponseDto>.Failure(errors);
         }
 
-        // Assign role based on user type
+      
         var role = dto.UserType == Core.Enums.UserType.Artist ? "Artist" : "Visitor";
         await _userManager.AddToRoleAsync(user, role);
 
-        // Send email confirmation
-        // var confirmToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-        // var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(confirmToken));
-        // var confirmLink = $"{_frontendBaseUrl}/confirm-email?userId={user.Id}&token={encodedToken}";
-        // await _emailService.SendEmailConfirmationAsync(user.Email!, user.DisplayName ?? user.Email!, confirmLink);
-        // TODO: Uncomment above and configure _frontendBaseUrl from settings once email is set up.
+        
 
         var authResponse = await GenerateAuthResponseAsync(user);
         return Result<AuthResponseDto>.Success(authResponse);
     }
 
-    // ── Login ──────────────────────────────────────────────────────────────────
+    
 
     public async Task<Result<AuthResponseDto>> LoginAsync(LoginRequestDto dto)
     {
@@ -114,11 +109,11 @@ public class AuthService
         return Result<AuthResponseDto>.Success(authResponse);
     }
 
-    // ── Refresh Token ──────────────────────────────────────────────────────────
+    
 
     public async Task<Result<AuthResponseDto>> RefreshTokenAsync(RefreshTokenRequestDto dto)
     {
-        // Validate the expired (but structurally valid) access token to extract user ID
+       
         var principal = GetPrincipalFromExpiredToken(dto.AccessToken);
         if (principal == null)
             return Result<AuthResponseDto>.Failure("Invalid access token.", 401);
@@ -137,7 +132,7 @@ public class AuthService
         return Result<AuthResponseDto>.Success(authResponse);
     }
 
-    // ── Profile ────────────────────────────────────────────────────────────────
+   
 
     public async Task<Result<UserProfileDto>> GetProfileAsync(string userId)
     {
@@ -184,18 +179,18 @@ public class AuthService
         return Result<UserProfileDto>.Success(MapToProfileDto(user));
     }
 
-    // ── Password Reset ─────────────────────────────────────────────────────────
+    
 
     public async Task<Result> ForgotPasswordAsync(ForgotPasswordRequestDto dto)
     {
         var user = await _userManager.FindByEmailAsync(dto.Email);
-        // Always return success to prevent email enumeration attacks
+       
         if (user == null) return Result.Success();
 
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
         var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
 
-        // TODO: Replace with your actual frontend URL from configuration
+        
         var frontendUrl = _configuration["FrontendUrl"] ?? "http://localhost:3000";
         var resetLink = $"{frontendUrl}/reset-password?email={user.Email}&token={encodedToken}";
 
@@ -214,7 +209,7 @@ public class AuthService
         if (!result.Succeeded)
             return Result.Failure(string.Join("; ", result.Errors.Select(e => e.Description)));
 
-        // Invalidate any existing refresh tokens after password reset for security
+        
         user.RefreshToken = null;
         user.RefreshTokenExpiryTime = null;
         await _userManager.UpdateAsync(user);
@@ -222,7 +217,7 @@ public class AuthService
         return Result.Success();
     }
 
-    // ── Private: JWT Generation ────────────────────────────────────────────────
+    
 
     private async Task<AuthResponseDto> GenerateAuthResponseAsync(ApplicationUser user)
     {
@@ -230,7 +225,7 @@ public class AuthService
         var refreshToken = GenerateRefreshToken();
         var expiry = DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpiryMinutes);
 
-        // Persist the refresh token (rotation: new token each time)
+       
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays);
         await _userManager.UpdateAsync(user);
@@ -271,7 +266,7 @@ public class AuthService
 
     private static string GenerateRefreshToken()
     {
-        // Cryptographically secure random bytes → Base64 string
+       
         var randomBytes = new byte[64];
         using var rng = RandomNumberGenerator.Create();
         rng.GetBytes(randomBytes);
@@ -288,7 +283,7 @@ public class AuthService
             ValidIssuer = _jwtSettings.Issuer,
             ValidAudience = _jwtSettings.Audience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret)),
-            ValidateLifetime = false // Allow expired tokens here — we're only reading claims
+            ValidateLifetime = false 
         };
 
         try
@@ -310,7 +305,7 @@ public class AuthService
         }
     }
 
-    // ── Private: Mapping ───────────────────────────────────────────────────────
+   
 
     private static UserProfileDto MapToProfileDto(ApplicationUser user) => new(
         Id: user.Id,
